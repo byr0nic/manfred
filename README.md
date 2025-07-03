@@ -1,3 +1,3 @@
-# mp.ventures
+# MANFRED
 
 Trading dashboard
