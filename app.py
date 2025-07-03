@@ -43,20 +43,44 @@ if upload:
     df = df[(df['STAKE'] >= stake_range[0]) & (df['STAKE'] <= stake_range[1])]
     df = df[df['Trade Outcome'].isin(result_filter)]
 
+    # Simulations
+    st.sidebar.subheader("Simulations")
+    use_stop = st.sidebar.checkbox("Apply stop-loss on losses")
+    stop_level = st.sidebar.number_input("Stop-loss threshold (£)", min_value=0, max_value=10000, value=200, step=10)
+
+    use_takeprofit = st.sidebar.checkbox("Apply take-profit on gains")
+    takeprofit_level = st.sidebar.number_input("Take-profit threshold (£)", min_value=0, max_value=10000, value=300, step=10)
+
+    use_trailing = st.sidebar.checkbox("Apply trailing stop-loss on gains")
+    trailing_gap = st.sidebar.number_input("Trailing stop gap (£)", min_value=0, max_value=10000, value=150, step=10)
+
+    def apply_simulation(row):
+        pnl = row['Net P&L']
+        if use_stop and pnl < -stop_level:
+            pnl = -stop_level
+        if use_takeprofit and pnl > takeprofit_level:
+            pnl = takeprofit_level
+        if use_trailing and pnl > trailing_gap:
+            pnl = pnl - trailing_gap
+        return pnl
+
+    df['Net P&L (Adj)'] = df.apply(apply_simulation, axis=1)
+    pnl_col = 'Net P&L (Adj)' if (use_stop or use_takeprofit or use_trailing) else 'Net P&L'
+
     # Summary stats
     total = len(df)
-    wins = (df['Trade Outcome'] == 'Win').sum()
-    losses = (df['Trade Outcome'] == 'Loss').sum()
+    wins = (df[pnl_col] > 0).sum()
+    losses = (df[pnl_col] < 0).sum()
     win_rate = wins / total * 100 if total else 0
-    avg_pnl = df['Net P&L'].mean()
-    avg_win = df[df['Net P&L'] > 0]['Net P&L'].mean()
-    avg_loss = df[df['Net P&L'] < 0]['Net P&L'].mean()
+    avg_pnl = df[pnl_col].mean()
+    avg_win = df[df[pnl_col] > 0][pnl_col].mean()
+    avg_loss = df[df[pnl_col] < 0][pnl_col].mean()
     risk_reward = avg_win / abs(avg_loss) if avg_loss else None
 
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Trades", total)
     col2.metric("Win Rate", f"{win_rate:.1f}%")
-    col3.metric("Net P&L", f"£{df['Net P&L'].sum():.2f}")
+    col3.metric("Net P&L", f"£{df[pnl_col].sum():.2f}")
 
     st.markdown("---")
 
@@ -65,12 +89,12 @@ if upload:
 
     st.subheader("Win/Loss Distribution")
     fig1, ax1 = plt.subplots()
-    sns.countplot(data=df, x='Trade Outcome', palette='Set2', ax=ax1)
+    sns.countplot(data=df, x=df[pnl_col].apply(lambda x: 'Win' if x > 0 else 'Loss' if x < 0 else 'Break-even'), palette='Set2', ax=ax1)
     st.pyplot(fig1)
     figs.append(fig1)
 
     st.subheader("Daily Net P&L")
-    daily = df.groupby('DATE')['Net P&L'].sum()
+    daily = df.groupby('DATE')[pnl_col].sum()
     fig2, ax2 = plt.subplots()
     daily.plot(kind='bar', ax=ax2)
     st.pyplot(fig2)
@@ -83,15 +107,15 @@ if upload:
     figs.append(fig3)
 
     st.subheader("Net P&L by Product")
-    product_pnl = df.groupby('PRODUCT')['Net P&L'].sum().sort_values()
+    product_pnl = df.groupby('PRODUCT')[pnl_col].sum().sort_values()
     fig4, ax4 = plt.subplots()
     product_pnl.plot(kind='barh', ax=ax4)
     st.pyplot(fig4)
     figs.append(fig4)
 
     st.subheader("Intraday Cumulative P&L")
-    intraday = df.groupby(['DATE', 'DATETIME_HOUR'])['Net P&L'].sum().reset_index()
-    intraday['Cumulative P&L'] = intraday.groupby('DATE')['Net P&L'].cumsum()
+    intraday = df.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
+    intraday['Cumulative P&L'] = intraday.groupby('DATE')[pnl_col].cumsum()
     fig5, ax5 = plt.subplots(figsize=(10, 5))
     for date in intraday['DATE'].unique():
         subset = intraday[intraday['DATE'] == date]
