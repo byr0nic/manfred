@@ -178,8 +178,7 @@ if upload:
     )
 
     st.dataframe(
-
-        formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}),
+        formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''),
         use_container_width=True
     )
     figs.append(fig2)
@@ -227,7 +226,7 @@ if upload:
     st.dataframe(method_perf.style.format({
         'Avg Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
         'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
-    }))
+    }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
 
     st.markdown("---")
     if st.button("📄 Export All Charts to PDF"):
