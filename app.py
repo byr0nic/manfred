@@ -91,10 +91,10 @@ if upload:
     figs = []
 
     st.subheader("Win/Loss Distribution")
-    figfig1, ax1 = plt.subplots(), axfig1, ax1 = plt.subplots() = plt.subplots(facecolor='black')
+    fig1, ax1 = plt.subplots(facecolor='black')
     sns.countplot(data=df, x=df[pnl_col].apply(lambda x: 'Win' if x > 0 else 'Loss' if x < 0 else 'Break-even'), palette='Set2', ax=ax1)
-    figst.pyplot(fig1).patch.set_facecolor('black')
-    st.pyplot(figst.pyplot(fig1))
+    fig1.patch.set_facecolor('black')
+    st.pyplot(fig1)
     figs.append(fig1)
 
     # Win/Loss Distribution by Day Type
@@ -172,7 +172,7 @@ if upload:
     for date in intraday['DATE'].unique():
         subset = intraday[intraday['DATE'] == date]
         label = date.strftime('%-d') + ("th" if 11 <= date.day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(date.day % 10, 'th')) + ' ' + date.strftime('%b %y')
-        ax5.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=label)) + ' ' + date.strftime('%b %y'))
+        ax5.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=label)
     ax5.axhline(0, color='gray', linestyle='--')
     ax5.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
     ax5.set_xticklabels([])
