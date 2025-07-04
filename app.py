@@ -98,6 +98,8 @@ if upload:
     fig2, ax2 = plt.subplots()
     daily.plot(kind='bar', ax=ax2)
     st.pyplot(fig2)
+
+    st.dataframe(daily.reset_index().rename(columns={pnl_col: 'Net P&L (£)'}).sort_values('DATE'), use_container_width=True)
     figs.append(fig2)
 
     st.subheader("Trades by Hour")
@@ -125,15 +127,7 @@ if upload:
     st.pyplot(fig5)
     figs.append(fig5)
 
-    # PDF export button
-    st.markdown("---")
-    if st.button("📄 Export All Charts to PDF"):
-        buffer = BytesIO()
-        with PdfPages(buffer) as pdf:
-            for fig in figs:
-                pdf.savefig(fig, bbox_inches='tight')
-        buffer.seek(0)
-        st.download_button("Download PDF Report", buffer, file_name="trading_report.pdf", mime="application/pdf")
+    
 
         st.subheader("Manual vs. Stop-Loss Exits")
     fig6, ax6 = plt.subplots()
@@ -144,7 +138,16 @@ if upload:
     figs.append(fig6)
 
     st.subheader("Exit Method Performance Comparison")
-    method_perf = df.groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Trades', 'mean': 'Avg P&L', 'sum': 'Total P&L'})
-    st.dataframe(method_perf.style.format({'Avg P&L': '£{:.2f}', 'Total P&L': '£{:.2f}'}))
+    method_perf = df[df[pnl_col] < 0].groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Loss Trades', 'mean': 'Avg Loss', 'sum': 'Total Loss'})
+    st.dataframe(method_perf.style.format({'Avg Loss': '£{:.2f}', 'Total Loss': '£{:.2f}'})))
+
+    st.markdown("---")
+    if st.button("📄 Export All Charts to PDF"):
+        buffer = BytesIO()
+        with PdfPages(buffer) as pdf:
+            for fig in figs:
+                pdf.savefig(fig, bbox_inches='tight')
+        buffer.seek(0)
+        st.download_button("Download PDF Report", buffer, file_name="trading_report.pdf", mime="application/pdf")
 
     st.caption("Upload a new file or adjust filters via the sidebar to refresh analysis.")
