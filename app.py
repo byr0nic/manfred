@@ -121,7 +121,7 @@ if upload:
     fig_hm, ax_hm = plt.subplots()
     heatmap_data = breakdown.drop(columns=['Total'])
     heatmap_data = heatmap_data[weekday_order]
-    sns.heatmap(heatmap_data, annot=True, fmt=".2f" if toggle_heatmap_metric == "Average P&L" else "d", cmap="RdYlGn", linewidths=0.5, linecolor='gray', ax=ax_hm, cbar_kws={'label': 'Metric'}, cmap='RdYlGn')
+    sns.heatmap(heatmap_data, annot=True, fmt=".2f" if toggle_heatmap_metric == "Average P&L" else "d", cmap="RdYlGn", linewidths=0.5, linecolor='gray', ax=ax_hm, cbar_kws={'label': 'Metric'})
     ax_hm.set_facecolor('black')
     ax_hm.set_title("Heatmap of Day Outcomes by Weekday")
     st.pyplot(fig_hm)
