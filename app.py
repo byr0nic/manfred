@@ -135,9 +135,6 @@ if upload:
     )
 
     st.dataframe(
-        formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}),
-        use_container_width=True
-    )
 
         formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}),
         use_container_width=True
