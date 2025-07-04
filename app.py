@@ -146,7 +146,10 @@ if upload:
     for text in ax_hm.texts:
         try:
             val = float(text.get_text().replace(',', ''))
-            formatted = f"{int(val)}"
+            if toggle_heatmap_metric == "Average P&L":
+                formatted = f"(£{abs(val):,.2f})" if val < 0 else f"£{val:,.2f}"
+            else:
+                formatted = f"{int(val)}"
             text.set_text(formatted)
         except:
             continue
