@@ -147,7 +147,10 @@ if upload:
         try:
             val = float(text.get_text().replace(',', ''))
             if toggle_heatmap_metric == "Average P&L":
-                formatted = f"(£{abs(val):,.2f})" if val < 0 else f"£{val:,.2f}"
+                if abs(val) >= 1000:
+                    formatted = f"(£{abs(val)/1000:.1f}k)" if val < 0 else f"£{val/1000:.1f}k"
+                else:
+                    formatted = f"(£{int(round(abs(val)))})" if val < 0 else f"£{int(round(val))}"
             else:
                 formatted = f"{int(val)}"
             text.set_text(formatted)
