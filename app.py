@@ -126,9 +126,6 @@ if upload:
     ax5.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
     st.pyplot(fig5)
     figs.append(fig5)
-
-    
-
     st.subheader("Manual vs. Stop-Loss Exits")
     fig6, ax6 = plt.subplots()
     loss_only = df[df[pnl_col] < 0]
@@ -139,7 +136,7 @@ if upload:
 
     st.subheader("Exit Method Performance Comparison")
     method_perf = df[df[pnl_col] < 0].groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Loss Trades', 'mean': 'Avg Loss', 'sum': 'Total Loss'})
-    st.dataframe(method_perf.style.format({'Avg Loss': '£{:.2f}', 'Total Loss': '£{:.2f}'})))
+    st.dataframe(method_perf.style.format({'Avg Loss': '£{:.2f}', 'Total Loss': '£{:.2f}'}))
 
     st.markdown("---")
     if st.button("📄 Export All Charts to PDF"):
