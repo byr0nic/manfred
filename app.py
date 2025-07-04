@@ -5,6 +5,11 @@ import seaborn as sns
 from io import BytesIO
 from matplotlib.backends.backend_pdf import PdfPages
 
+def format_ordinal_date(date_obj):
+    day = date_obj.day
+    suffix = "th" if 11 <= day <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
+    return f"{day}{suffix} {date_obj.strftime('%b %y')}"
+
 # Load data
 @st.cache_data
 def load_data(upload):
@@ -18,7 +23,7 @@ def load_data(upload):
     df['Trade Outcome'] = df['Net P&L'].apply(lambda x: 'Win' if x > 0 else 'Loss' if x < 0 else 'Break-even')
     df['DATE'] = df['DATE/TIME'].dt.date
     df['HOUR'] = df['DATE/TIME'].dt.hour
-    df['DATETIME_HOUR'] = df['DATE/TIME'].dt.floor('H')
+    df['DATETIME_HOUR'] = df['DATE/TIME'].dt.floor('h')
     df['PRODUCT'] = df['PRODUCT'].str.strip()
     return df
 
@@ -92,7 +97,8 @@ if upload:
 
     st.subheader("Win/Loss Distribution")
     fig1, ax1 = plt.subplots(facecolor='black')
-    sns.countplot(data=df, x=df[pnl_col].apply(lambda x: 'Win' if x > 0 else 'Loss' if x < 0 else 'Break-even'), palette='Set2', ax=ax1)
+    df['WinLossLabel'] = df[pnl_col].apply(lambda x: 'Win' if x > 0 else 'Loss' if x < 0 else 'Break-even')
+    sns.countplot(data=df, x='WinLossLabel', palette='Set2', ax=ax1)
     fig1.patch.set_facecolor('black')
     st.pyplot(fig1)
     figs.append(fig1)
@@ -106,7 +112,7 @@ if upload:
 
     if toggle_heatmap_metric == "Average P&L":
         breakdown = daily_wl.groupby(['Day Outcome', 'Weekday'])[pnl_col].mean().unstack(fill_value=0)
-        breakdown = breakdown[weekday_order]
+        breakdown = breakdown.reindex(columns=weekday_order, fill_value=0)
         fmt_str = lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
     else:
         breakdown = daily_wl.groupby(['Day Outcome', 'Weekday']).size().unstack(fill_value=0)
@@ -120,7 +126,7 @@ if upload:
     st.subheader("Winning/Losing Days by Weekday (Heatmap)")
     fig_hm, ax_hm = plt.subplots()
     heatmap_data = breakdown.drop(columns=['Total'])
-    heatmap_data = heatmap_data[weekday_order]
+    heatmap_data = heatmap_data.reindex(columns=weekday_order, fill_value=0)
     sns.heatmap(heatmap_data, annot=True, fmt=".2f" if toggle_heatmap_metric == "Average P&L" else "d", cmap="RdYlGn", linewidths=0.5, linecolor='gray', ax=ax_hm, cbar_kws={'label': 'Metric'})
     ax_hm.set_facecolor('black')
     ax_hm.set_title("Heatmap of Day Outcomes by Weekday")
@@ -130,7 +136,7 @@ if upload:
     st.subheader("Daily Net P&L")
     daily = df.groupby('DATE')[pnl_col].sum().sort_index()
     fig2, ax2 = plt.subplots()
-    daily.index = daily.index.to_series().apply(lambda d: d.strftime('%d').lstrip('0') + ("th" if 11 <= int(d.strftime('%d')) <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(int(d.strftime('%d')) % 10, 'th')) + ' ' + d.strftime('%b %y'))
+    daily.index = daily.index.to_series().apply(format_ordinal_date)
     daily.plot(kind='bar', ax=ax2)
     st.pyplot(fig2)
 
@@ -138,9 +144,7 @@ if upload:
         daily.reset_index()
         .rename(columns={pnl_col: 'Net P&L (£)'})
         .assign(DATE=lambda x: pd.to_datetime(x['DATE']).apply(
-            lambda d: d.strftime('%-d') +
-            ("th" if 11 <= d.day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(d.day % 10, 'th')) +
-            ' ' + d.strftime('%b %y')
+            format_ordinal_date
         ))
         .sort_values('DATE')
     )
@@ -173,7 +177,7 @@ if upload:
     fig5, ax5 = plt.subplots(figsize=(10, 5))
     for date in intraday['DATE'].unique():
         subset = intraday[intraday['DATE'] == date]
-        label = date.strftime('%-d') + ("th" if 11 <= date.day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(date.day % 10, 'th')) + ' ' + date.strftime('%b %y')
+        label = format_ordinal_date(date)
         ax5.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=label)
     ax5.axhline(0, color='gray', linestyle='--')
     ax5.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
