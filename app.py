@@ -116,7 +116,7 @@ if upload:
         fmt_str = lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
     else:
         breakdown = daily_wl.groupby(['Day Outcome', 'Weekday']).size().unstack(fill_value=0)
-        breakdown = breakdown[weekday_order]
+        breakdown = breakdown.reindex(columns=weekday_order, fill_value=0)
         fmt_str = "{:,.0f}".format
 
 
