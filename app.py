@@ -117,7 +117,7 @@ if upload:
     else:
         breakdown = daily_wl.groupby(['Day Outcome', 'Weekday']).size().unstack(fill_value=0)
         breakdown = breakdown.reindex(columns=weekday_order, fill_value=0)
-        fmt_str = lambda x: f"(£{round(abs(x), -2)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x), -2))})" if x < 0 else f"£{round(x, -2)/1000:.1f}k" if x > 999 else f"£{int(round(x, -2))}"
+        fmt_str = lambda x: f"{int(x)}"
 
 
     breakdown['Total'] = breakdown.sum(axis=1)
@@ -146,10 +146,7 @@ if upload:
     for text in ax_hm.texts:
         try:
             val = float(text.get_text().replace(',', ''))
-            if abs(val) >= 1000:
-                formatted = f"(£{abs(val)/1000:.1f}k)" if val < 0 else f"£{val/1000:.1f}k"
-            else:
-                formatted = f"(£{int(round(abs(val)))})" if val < 0 else f"£{int(round(val))}"
+            formatted = f"{int(val)}"
             text.set_text(formatted)
         except:
             continue
