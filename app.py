@@ -106,11 +106,13 @@ if upload:
 
     if toggle_heatmap_metric == "Average P&L":
         breakdown = daily_wl.groupby(['Day Outcome', 'Weekday'])[pnl_col].mean().unstack(fill_value=0)
-    breakdown = breakdown[weekday_order]
-    fmt_str = lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
+        breakdown = breakdown[weekday_order]
+        fmt_str = lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
     else:
         breakdown = daily_wl.groupby(['Day Outcome', 'Weekday']).size().unstack(fill_value=0)
+        breakdown = breakdown[weekday_order]
         fmt_str = "{:,.0f}".format
+
 
     breakdown['Total'] = breakdown.sum(axis=1)
     st.dataframe(breakdown.style.format(fmt_str))
