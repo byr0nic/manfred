@@ -145,7 +145,7 @@ if upload:
 # Apply custom formatting for annotations
 for text in ax_hm.texts:
     try:
-        val = float(text.get_text())
+        val = float(text.get_text().replace(',', ''))
         if abs(val) >= 1000:
             formatted = f"(£{abs(val)/1000:.1f}k)" if val < 0 else f"£{val/1000:.1f}k"
         else:
@@ -153,7 +153,7 @@ for text in ax_hm.texts:
         text.set_text(formatted)
     except:
         continue
-    ax_hm.set_facecolor('black')
+ax_hm.set_facecolor('black')
     ax_hm.set_title("Heatmap of Day Outcomes by Weekday")
     st.pyplot(fig_hm)
     figs.append(fig_hm)
