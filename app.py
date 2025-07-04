@@ -86,9 +86,9 @@ if upload:
     col1.metric("Total Trades", total)
     col2.metric("Win Rate", f"{win_rate:.1f}%")
     net_pnl_value = df[pnl_col].sum()
-    net_pnl_str = f"(£{abs(net_pnl_value)/1000:.1f}k)" if net_pnl_value < -999 else f"(£{int(round(abs(net_pnl_value)))})" if net_pnl_value < 0 else f"£{net_pnl_value/1000:.1f}k" if net_pnl_value > 999 else f"£{int(round(net_pnl_value))}"
-    net_pnl_color = "inverse" if net_pnl_value < 0 else "normal"
-    col3.metric("Net P&L", net_pnl_str, delta_color=net_pnl_color)
+    net_pnl_str = f"(£{abs(net_pnl_value):,.2f})" if net_pnl_value < 0 else f"£{net_pnl_value:,.2f}"
+    net_pnl_color = "#FF4B4B" if net_pnl_value < 0 else "#28A745"
+    col3.markdown(f"<div style='font-size:24px; color:{net_pnl_color}; font-weight:bold;'>Net P&amp;L: {net_pnl_str}</div>", unsafe_allow_html=True)
 
     st.markdown("---")
 
