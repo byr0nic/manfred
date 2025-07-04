@@ -10,7 +10,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 def load_data(upload):
     df = pd.read_csv(upload)
     df['DATE/TIME'] = pd.to_datetime(df['DATE/TIME'], format='%d %b %Y %H:%M:%S')
-    df = df[df['TYPE'] == 'Close Bet'].copy()
+    df = df[df['TYPE'].isin(['Close Bet', 'Stop Loss'])].copy()
     df['STAKE'] = pd.to_numeric(df['STAKE'].astype(str).str.replace(',', ''), errors='coerce')
     df['PRICE'] = pd.to_numeric(df['PRICE'].astype(str).str.replace(',', ''), errors='coerce')
     df['AMOUNT (GBP)'] = pd.to_numeric(df['AMOUNT (GBP)'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
@@ -134,5 +134,16 @@ if upload:
                 pdf.savefig(fig, bbox_inches='tight')
         buffer.seek(0)
         st.download_button("Download PDF Report", buffer, file_name="trading_report.pdf", mime="application/pdf")
+
+        st.subheader("Manual vs. Stop-Loss Exits")
+    fig6, ax6 = plt.subplots()
+    sns.countplot(data=df, x='TYPE', palette='pastel', ax=ax6)
+    ax6.set_title("Exit Method Distribution")
+    st.pyplot(fig6)
+    figs.append(fig6)
+
+    st.subheader("Exit Method Performance Comparison")
+    method_perf = df.groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Trades', 'mean': 'Avg P&L', 'sum': 'Total P&L'})
+    st.dataframe(method_perf.style.format({'Avg P&L': '£{:.2f}', 'Total P&L': '£{:.2f}'}))
 
     st.caption("Upload a new file or adjust filters via the sidebar to refresh analysis.")
