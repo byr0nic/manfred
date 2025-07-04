@@ -172,7 +172,7 @@ if upload:
     for date in intraday['DATE'].unique():
         subset = intraday[intraday['DATE'] == date]
         label = date.strftime('%-d') + ("th" if 11 <= date.day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(date.day % 10, 'th')) + ' ' + date.strftime('%b %y')
-        ax5.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=label) + ("th" if 11 <= date.day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(date.day % 10, 'th')) + ' ' + date.strftime('%b %y'))
+        ax5.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=label)) + ' ' + date.strftime('%b %y'))
     ax5.axhline(0, color='gray', linestyle='--')
     ax5.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
     ax5.set_xticklabels([])
