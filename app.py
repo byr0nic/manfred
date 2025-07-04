@@ -137,8 +137,9 @@ if upload:
 
         st.subheader("Manual vs. Stop-Loss Exits")
     fig6, ax6 = plt.subplots()
-    sns.countplot(data=df, x='TYPE', palette='pastel', ax=ax6)
-    ax6.set_title("Exit Method Distribution")
+    loss_only = df[df[pnl_col] < 0]
+    sns.countplot(data=loss_only, x='TYPE', palette='pastel', ax=ax6)
+    ax6.set_title("Exit Method Distribution (Losses Only)")
     st.pyplot(fig6)
     figs.append(fig6)
 
