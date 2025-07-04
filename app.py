@@ -80,7 +80,10 @@ if upload:
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Trades", total)
     col2.metric("Win Rate", f"{win_rate:.1f}%")
-    col3.metric("Net P&L", f"£({abs(df[pnl_col].sum()):.2f})" if df[pnl_col].sum() < 0 else f"£{df[pnl_col].sum():.2f}")
+    net_pnl_value = df[pnl_col].sum()
+    net_pnl_str = f"(£{abs(net_pnl_value):,.2f})" if net_pnl_value < 0 else f"£{net_pnl_value:,.2f}"
+    net_pnl_color = "inverse" if net_pnl_value < 0 else "normal"
+    col3.metric("Net P&L", net_pnl_str, delta_color=net_pnl_color)
 
     st.markdown("---")
 
@@ -88,19 +91,22 @@ if upload:
     figs = []
 
     st.subheader("Win/Loss Distribution")
-    fig1, ax1 = plt.subplots()
+    figfig1, ax1 = plt.subplots(), axfig1, ax1 = plt.subplots() = plt.subplots(facecolor='black')
     sns.countplot(data=df, x=df[pnl_col].apply(lambda x: 'Win' if x > 0 else 'Loss' if x < 0 else 'Break-even'), palette='Set2', ax=ax1)
-    st.pyplot(fig1)
+    figst.pyplot(fig1).patch.set_facecolor('black')
+    st.pyplot(figst.pyplot(fig1))
     figs.append(fig1)
 
     # Win/Loss Distribution by Day Type
     daily_wl = df.groupby('DATE')[pnl_col].sum().reset_index()
     daily_wl['Day Outcome'] = daily_wl[pnl_col].apply(lambda x: 'Winning Day' if x > 0 else 'Losing Day' if x < 0 else 'Flat Day')
     daily_wl['Weekday'] = pd.to_datetime(daily_wl['DATE']).dt.strftime('%A')
+    weekday_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     toggle_heatmap_metric = st.radio("Heatmap Metric", options=["Average P&L", "Day Count"], horizontal=True)
 
     if toggle_heatmap_metric == "Average P&L":
         breakdown = daily_wl.groupby(['Day Outcome', 'Weekday'])[pnl_col].mean().unstack(fill_value=0)
+    breakdown = breakdown[weekday_order]
         fmt_str = lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
     else:
         breakdown = daily_wl.groupby(['Day Outcome', 'Weekday']).size().unstack(fill_value=0)
@@ -111,7 +117,10 @@ if upload:
 
     st.subheader("Winning/Losing Days by Weekday (Heatmap)")
     fig_hm, ax_hm = plt.subplots()
-    sns.heatmap(breakdown.drop(columns=['Total']), annot=True, fmt=".2f" if toggle_heatmap_metric == "Average P&L" else "d", cmap="RdYlGn", linewidths=0.5, linecolor='gray', ax=ax_hm)
+    heatmap_data = breakdown.drop(columns=['Total'])
+    heatmap_data = heatmap_data[weekday_order]
+    sns.heatmap(heatmap_data, annot=True, fmt=".2f" if toggle_heatmap_metric == "Average P&L" else "d", cmap="RdYlGn", linewidths=0.5, linecolor='gray', ax=ax_hm, cbar_kws={'label': 'Metric'}, cmap='RdYlGn')
+    ax_hm.set_facecolor('black')
     ax_hm.set_title("Heatmap of Day Outcomes by Weekday")
     st.pyplot(fig_hm)
     figs.append(fig_hm)
@@ -151,6 +160,8 @@ if upload:
     product_pnl = df.groupby('PRODUCT')[pnl_col].sum().sort_values()
     fig4, ax4 = plt.subplots()
     product_pnl.plot(kind='barh', ax=ax4)
+    ax4.set_xlabel('Net P&L')
+    ax4.set_xticklabels([f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}" for x in ax4.get_xticks()])
     st.pyplot(fig4)
     figs.append(fig4)
 
@@ -160,9 +171,13 @@ if upload:
     fig5, ax5 = plt.subplots(figsize=(10, 5))
     for date in intraday['DATE'].unique():
         subset = intraday[intraday['DATE'] == date]
-        ax5.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=str(date))
+        label = date.strftime('%-d') + ("th" if 11 <= date.day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(date.day % 10, 'th')) + ' ' + date.strftime('%b %y')
+        ax5.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=label) + ("th" if 11 <= date.day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(date.day % 10, 'th')) + ' ' + date.strftime('%b %y'))
     ax5.axhline(0, color='gray', linestyle='--')
     ax5.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax5.set_xticklabels([])
+    ax5.set_ylabel('Cumulative P&L')
+    ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}")), loc='upper left')
     st.pyplot(fig5)
     figs.append(fig5)
     st.subheader("Manual vs. Stop-Loss Exits")
