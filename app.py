@@ -142,7 +142,7 @@ if upload:
     cbar=True
 )
 
-# Apply custom formatting for annotations
+    # Apply custom formatting for annotations
     for text in ax_hm.texts:
         try:
             val = float(text.get_text().replace(',', ''))
