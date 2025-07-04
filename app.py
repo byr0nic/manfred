@@ -175,7 +175,10 @@ if upload:
 
     st.subheader("Exit Method Performance Comparison")
     method_perf = df[df[pnl_col] < 0].groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Loss Trades', 'mean': 'Avg Loss', 'sum': 'Total Loss'})
-    st.dataframe(method_perf.style.applymap(lambda x: f"£({abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"))
+    st.dataframe(method_perf.style.format({
+        'Avg Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
+        'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
+    }))
 
     st.markdown("---")
     if st.button("📄 Export All Charts to PDF"):
