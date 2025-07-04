@@ -88,7 +88,7 @@ if upload:
     net_pnl_value = df[pnl_col].sum()
     net_pnl_str = f"(£{abs(net_pnl_value):,.2f})" if net_pnl_value < 0 else f"£{net_pnl_value:,.2f}"
     net_pnl_color = "#FF4B4B" if net_pnl_value < 0 else "#28A745"
-    col3.markdown(f"<div style='font-size: 1.5em;'>Net P&amp;L: <span style='color:{net_pnl_color};'>{net_pnl_str}</span></div>", unsafe_allow_html=True)
+    col3.metric("Net P&L", net_pnl_str, delta_color=net_pnl_color)
 
     st.markdown("---")
 
