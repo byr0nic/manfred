@@ -93,9 +93,24 @@ if upload:
     st.pyplot(fig1)
     figs.append(fig1)
 
+    # Win/Loss Distribution by Day Type
+    daily_wl = df.groupby('DATE')[pnl_col].sum().reset_index()
+    daily_wl['Day Outcome'] = daily_wl[pnl_col].apply(lambda x: 'Winning Day' if x > 0 else 'Losing Day' if x < 0 else 'Flat Day')
+    daily_wl['Weekday'] = pd.to_datetime(daily_wl['DATE']).dt.strftime('%A')
+    breakdown = daily_wl.groupby(['Day Outcome', 'Weekday'])[pnl_col].mean().unstack(fill_value=0)
+    st.dataframe(breakdown.style.format())
+
+    st.subheader("Winning/Losing Days by Weekday (Heatmap)")
+    fig_hm, ax_hm = plt.subplots()
+    sns.heatmap(breakdown, annot=True, fmt=".2f", cmap="RdYlGn", linewidths=0.5, linecolor='gray', ax=ax_hm)
+    ax_hm.set_title("Heatmap of Day Outcomes by Weekday")
+    st.pyplot(fig_hm)
+    figs.append(fig_hm)
+
     st.subheader("Daily Net P&L")
-    daily = df.groupby('DATE')[pnl_col].sum()
+    daily = df.groupby('DATE')[pnl_col].sum().sort_index()
     fig2, ax2 = plt.subplots()
+    daily.index = daily.index.to_series().apply(lambda d: d.strftime('%d').lstrip('0') + ("th" if 11 <= int(d.strftime('%d')) <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(int(d.strftime('%d')) % 10, 'th')) + ' ' + d.strftime('%b %y'))
     daily.plot(kind='bar', ax=ax2)
     st.pyplot(fig2)
 
