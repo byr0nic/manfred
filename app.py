@@ -129,7 +129,7 @@ if upload:
 
     
 
-        st.subheader("Manual vs. Stop-Loss Exits")
+    st.subheader("Manual vs. Stop-Loss Exits")
     fig6, ax6 = plt.subplots()
     loss_only = df[df[pnl_col] < 0]
     sns.countplot(data=loss_only, x='TYPE', palette='pastel', ax=ax6)
