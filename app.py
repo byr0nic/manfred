@@ -80,7 +80,7 @@ if upload:
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Trades", total)
     col2.metric("Win Rate", f"{win_rate:.1f}%")
-    col3.metric("Net P&L", f"£{df[pnl_col].sum():.2f}")
+    col3.metric("Net P&L", f"£({abs(df[pnl_col].sum()):.2f})" if df[pnl_col].sum() < 0 else f"£{df[pnl_col].sum():.2f}")
 
     st.markdown("---")
 
@@ -99,7 +99,13 @@ if upload:
     daily.plot(kind='bar', ax=ax2)
     st.pyplot(fig2)
 
-    st.dataframe(daily.reset_index().rename(columns={pnl_col: 'Net P&L (£)'}).sort_values('DATE'), use_container_width=True)
+    st.dataframe(
+        daily.reset_index().assign(DATE=lambda x: x['DATE'].apply(lambda d: d.strftime('%d').lstrip('0') + ("th" if 11 <= int(d.strftime('%d')) <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(int(d.strftime('%d')) % 10, 'th')) + ' ' + d.strftime('%b %y')))
+        .rename(columns={pnl_col: 'Net P&L (£)'})
+        .sort_values('DATE')
+        .style.applymap(lambda x: f"£({abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"),
+        use_container_width=True
+    )
     figs.append(fig2)
 
     st.subheader("Trades by Hour")
@@ -136,7 +142,7 @@ if upload:
 
     st.subheader("Exit Method Performance Comparison")
     method_perf = df[df[pnl_col] < 0].groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Loss Trades', 'mean': 'Avg Loss', 'sum': 'Total Loss'})
-    st.dataframe(method_perf.style.format({'Avg Loss': '£{:.2f}', 'Total Loss': '£{:.2f}'}))
+    st.dataframe(method_perf.style.applymap(lambda x: f"£({abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"))
 
     st.markdown("---")
     if st.button("📄 Export All Charts to PDF"):
