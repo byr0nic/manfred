@@ -97,12 +97,21 @@ if upload:
     daily_wl = df.groupby('DATE')[pnl_col].sum().reset_index()
     daily_wl['Day Outcome'] = daily_wl[pnl_col].apply(lambda x: 'Winning Day' if x > 0 else 'Losing Day' if x < 0 else 'Flat Day')
     daily_wl['Weekday'] = pd.to_datetime(daily_wl['DATE']).dt.strftime('%A')
-    breakdown = daily_wl.groupby(['Day Outcome', 'Weekday'])[pnl_col].mean().unstack(fill_value=0)
-    st.dataframe(breakdown.style.format())
+    toggle_heatmap_metric = st.radio("Heatmap Metric", options=["Average P&L", "Day Count"], horizontal=True)
+
+    if toggle_heatmap_metric == "Average P&L":
+        breakdown = daily_wl.groupby(['Day Outcome', 'Weekday'])[pnl_col].mean().unstack(fill_value=0)
+        fmt_str = lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
+    else:
+        breakdown = daily_wl.groupby(['Day Outcome', 'Weekday']).size().unstack(fill_value=0)
+        fmt_str = "{:,.0f}".format
+
+    breakdown['Total'] = breakdown.sum(axis=1)
+    st.dataframe(breakdown.style.format(fmt_str))
 
     st.subheader("Winning/Losing Days by Weekday (Heatmap)")
     fig_hm, ax_hm = plt.subplots()
-    sns.heatmap(breakdown, annot=True, fmt=".2f", cmap="RdYlGn", linewidths=0.5, linecolor='gray', ax=ax_hm)
+    sns.heatmap(breakdown.drop(columns=['Total']), annot=True, fmt=".2f" if toggle_heatmap_metric == "Average P&L" else "d", cmap="RdYlGn", linewidths=0.5, linecolor='gray', ax=ax_hm)
     ax_hm.set_title("Heatmap of Day Outcomes by Weekday")
     st.pyplot(fig_hm)
     figs.append(fig_hm)
