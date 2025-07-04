@@ -113,11 +113,11 @@ if upload:
     if toggle_heatmap_metric == "Average P&L":
         breakdown = daily_wl.groupby(['Day Outcome', 'Weekday'])[pnl_col].mean().unstack(fill_value=0)
         breakdown = breakdown.reindex(columns=weekday_order, fill_value=0)
-        fmt_str = lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
+        fmt_str = lambda x: f"(£{round(abs(x), -2)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x), -2))})" if x < 0 else f"£{round(x, -2)/1000:.1f}k" if x > 999 else f"£{int(round(x, -2))}"
     else:
         breakdown = daily_wl.groupby(['Day Outcome', 'Weekday']).size().unstack(fill_value=0)
         breakdown = breakdown.reindex(columns=weekday_order, fill_value=0)
-        fmt_str = "{:,.0f}".format
+        fmt_str = lambda x: f"(£{round(abs(x), -2)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x), -2))})" if x < 0 else f"£{round(x, -2)/1000:.1f}k" if x > 999 else f"£{int(round(x, -2))}"
 
 
     breakdown['Total'] = breakdown.sum(axis=1)
