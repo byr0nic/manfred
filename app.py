@@ -153,7 +153,7 @@ if upload:
             text.set_text(formatted)
         except:
             continue
-ax_hm.set_facecolor('black')
+    ax_hm.set_facecolor('black')
     ax_hm.set_title("Heatmap of Day Outcomes by Weekday")
     st.pyplot(fig_hm)
     figs.append(fig_hm)
