@@ -177,7 +177,7 @@ if upload:
     ax5.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
     ax5.set_xticklabels([])
     ax5.set_ylabel('Cumulative P&L')
-    ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}")), loc='upper left')
+    ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"))
     st.pyplot(fig5)
     figs.append(fig5)
     st.subheader("Manual vs. Stop-Loss Exits")
