@@ -143,10 +143,9 @@ if upload:
     formatted_daily = (
         daily.reset_index()
         .rename(columns={pnl_col: 'Net P&L (£)'})
-        .assign(DATE_ORIG=lambda x: x['DATE'])
-        .assign(DATE=lambda x: pd.to_datetime(x['DATE_ORIG']).apply(format_ordinal_date))
-        .sort_values('DATE_ORIG')
-        .drop(columns=['DATE_ORIG'])
+        .assign(DATE=pd.to_datetime(daily.index))
+        .sort_values('DATE')
+        .assign(DATE=lambda x: x['DATE'].apply(format_ordinal_date))
         .reset_index(drop=True)
     )
 
