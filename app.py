@@ -125,16 +125,20 @@ if upload:
 
     formatted_daily = (
         daily.reset_index()
-        .assign(DATE=lambda x: x['DATE'].apply(
-            lambda d: d.strftime('%d').lstrip('0') +
-            ("th" if 11 <= int(d.strftime('%d')) <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(int(d.strftime('%d')) % 10, 'th')) +
+        .rename(columns={pnl_col: 'Net P&L (£)'})
+        .assign(DATE=lambda x: pd.to_datetime(x['DATE']).apply(
+            lambda d: d.strftime('%-d') +
+            ("th" if 11 <= d.day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(d.day % 10, 'th')) +
             ' ' + d.strftime('%b %y')
         ))
-        .rename(columns={pnl_col: 'Net P&L (£)'})
         .sort_values('DATE')
     )
 
     st.dataframe(
+        formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}),
+        use_container_width=True
+    )
+
         formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}),
         use_container_width=True
     )
