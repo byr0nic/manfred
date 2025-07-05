@@ -270,6 +270,16 @@ if upload:
 
     st.subheader("Trade Duration Summary")
 
+    st.write("Min Duration:", f"{durations.min():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
+    st.write("Max Duration:", f"{durations.max():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
+    st.write("Average Duration:", f"{durations.mean():,.1f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
+
+    fig_dur, ax_dur = plt.subplots()
+    sns.histplot(durations, bins=30, kde=True, ax=ax_dur)
+    ax_dur.set_xlabel(f"Trade Duration ({'seconds' if duration_unit == 'Seconds' else 'minutes'})")
+    ax_dur.set_ylabel("Number of Trades")
+    st.pyplot(fig_dur)
+
     # Duration Buckets
     bins = [0, 15, 60, 120, 300, 900, float('inf')]
     labels = ["<15s", "15-60s", "1-2m", "2-5m", "5-15m", ">15m"]
@@ -301,16 +311,6 @@ if upload:
     st.pyplot(fig_dur_pnl)
     duration_unit = st.radio("Display Duration In:", options=["Seconds", "Minutes"], horizontal=True)
     durations = duration_seconds if duration_unit == "Seconds" else duration_seconds.div(60)
-
-    st.write("Min Duration:", f"{durations.min():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
-    st.write("Max Duration:", f"{durations.max():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
-    st.write("Average Duration:", f"{durations.mean():,.1f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
-
-    fig_dur, ax_dur = plt.subplots()
-    sns.histplot(durations, bins=30, kde=True, ax=ax_dur)
-    ax_dur.set_xlabel(f"Trade Duration ({'seconds' if duration_unit == 'Seconds' else 'minutes'})")
-    ax_dur.set_ylabel("Number of Trades")
-    st.pyplot(fig_dur)
 
     st.markdown("---")
     if st.button("📄 Export All Charts to PDF"):
