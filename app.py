@@ -52,7 +52,7 @@ if upload:
     result_filter = st.sidebar.multiselect("Trade Outcome", options=df['Trade Outcome'].unique(), default=df['Trade Outcome'].unique())
     direction_filter = st.sidebar.multiselect("Direction", options=df['Direction'].dropna().unique(), default=df['Direction'].dropna().unique())
     duration_seconds = df['Trade Duration (s)'].dropna()
-    dur_min, dur_max = st.sidebar.slider("Trade Duration (seconds)", 0, int(duration_seconds.max()), (0, int(duration_seconds.max())))), (0, int(duration_seconds.max())))
+    dur_min, dur_max = st.sidebar.slider("Trade Duration (seconds)", 0, int(duration_seconds.max()), (0, int(duration_seconds.max()))), (0, int(duration_seconds.max())))
 
     # Apply filters
     if len(date_range) == 2:
