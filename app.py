@@ -54,7 +54,7 @@ if upload:
     duration_unit_sidebar = st.sidebar.radio("Trade Duration Unit", options=["Seconds", "Minutes"], horizontal=True)
     duration_seconds = df['Trade Duration (s)'].dropna()
     durations_sidebar = duration_seconds if duration_unit_sidebar == "Seconds" else duration_seconds.div(60)
-    dur_min, dur_max = st.sidebar.slider(f"Trade Duration ({'seconds' if duration_unit_sidebar == 'Seconds' else 'minutes'})", 0, int(durations_sidebar.max()), (0, int(durations_sidebar.max())))), (0, int(duration_seconds.max())))
+    dur_min, dur_max = st.sidebar.slider(f"Trade Duration ({'seconds' if duration_unit_sidebar == 'Seconds' else 'minutes'})", 0, int(durations_sidebar.max()), (0, int(durations_sidebar.max())))
 
     # Apply filters
     if len(date_range) == 2:
