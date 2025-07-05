@@ -61,6 +61,7 @@ if upload:
 
     st.sidebar.markdown("---")
     st.sidebar.subheader("Outlier Filtering")
+    use_outlier_filtering = st.sidebar.checkbox("Enable outlier filtering")
     bottom_pct = st.sidebar.slider("Remove bottom X% trades", 0, 50, 0, step=1)
     top_pct = st.sidebar.slider("Remove top X% trades", 0, 50, 0, step=1)
 
@@ -77,7 +78,7 @@ if upload:
     df['Net P&L (Adj)'] = df.apply(apply_simulation, axis=1)
 
     # Apply outlier trimming
-    if bottom_pct > 0 or top_pct > 0:
+    if use_outlier_filtering and (bottom_pct > 0 or top_pct > 0):
         pnl_sorted = df.sort_values('Net P&L (Adj)')
         n = len(pnl_sorted)
         bottom_n = int(n * bottom_pct / 100)
