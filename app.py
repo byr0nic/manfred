@@ -36,7 +36,6 @@ def load_data(upload):
     df['PRODUCT'] = df['PRODUCT'].str.strip()
     return df
 
-
 # Sidebar upload
 st.sidebar.title("Upload Trade History CSV")
 upload = st.sidebar.file_uploader("Upload CMC History CSV", type=["csv"])
@@ -96,6 +95,186 @@ if upload:
         df = pnl_sorted.iloc[bottom_n:n - top_n if top_n > 0 else n]
     pnl_col = 'Net P&L (Adj)' if (use_stop or use_takeprofit or use_trailing) else 'Net P&L'
 
+    # Summary stats
+    total = len(df)
+    wins = (df[pnl_col] > 0).sum()
+    losses = (df[pnl_col] < 0).sum()
+    win_rate = wins / total * 100 if total else 0
+    avg_pnl = df[pnl_col].mean()
+    avg_win = df[df[pnl_col] > 0][pnl_col].mean()
+    avg_loss = df[df[pnl_col] < 0][pnl_col].mean()
+    risk_reward = avg_win / abs(avg_loss) if avg_loss else None
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Trades", total)
+    col2.metric("Win Rate", f"{win_rate:.1f}%")
+    net_pnl_value = df[pnl_col].sum()
+    net_pnl_str = f"(£{abs(net_pnl_value):,.2f})" if net_pnl_value < 0 else f"£{net_pnl_value:,.2f}"
+    net_pnl_color = "#FF4B4B" if net_pnl_value < 0 else "#28A745"
+    col3.metric("Net P&L", net_pnl_str)
+
+    st.markdown("---")
+
+    # Charts
+    figs = []
+
+    st.subheader("Win/Loss Distribution")
+    fig1, ax1 = plt.subplots(facecolor='black')
+    df['WinLossLabel'] = df[pnl_col].apply(lambda x: 'Win' if x > 0 else 'Loss' if x < 0 else 'Break-even')
+    sns.countplot(data=df, x='WinLossLabel', palette='Set2', ax=ax1)
+    fig1.patch.set_facecolor('black')
+    st.pyplot(fig1)
+    figs.append(fig1)
+
+    # Win/Loss Distribution by Day Type
+    daily_wl = df.groupby('DATE')[pnl_col].sum().reset_index()
+    daily_wl['Day Outcome'] = daily_wl[pnl_col].apply(lambda x: 'Winning Day' if x > 0 else 'Losing Day' if x < 0 else 'Flat Day')
+    daily_wl['Weekday'] = pd.to_datetime(daily_wl['DATE']).dt.strftime('%A')
+    weekday_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    toggle_heatmap_metric = st.radio("Heatmap Metric", options=["Average P&L", "Day Count"], horizontal=True)
+
+    if toggle_heatmap_metric == "Average P&L":
+        breakdown = daily_wl.groupby(['Day Outcome', 'Weekday'])[pnl_col].mean().unstack(fill_value=0)
+        breakdown = breakdown.reindex(columns=weekday_order, fill_value=0)
+        fmt_str = lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
+    else:
+        breakdown = daily_wl.groupby(['Day Outcome', 'Weekday']).size().unstack(fill_value=0)
+        breakdown = breakdown.reindex(columns=weekday_order, fill_value=0)
+        fmt_str = lambda x: f"{int(x)}"
+
+
+    breakdown['Total'] = breakdown.sum(axis=1)
+    st.dataframe(breakdown.style.format(fmt_str))
+
+    st.subheader("Winning/Losing Days by Weekday (Heatmap)")
+    fig_hm, ax_hm = plt.subplots()
+    heatmap_data = breakdown.drop(columns=['Total'])
+    heatmap_data = heatmap_data.reindex(columns=weekday_order, fill_value=0)
+    sns.heatmap(
+    heatmap_data,
+    annot=True,
+    fmt="",
+    cmap="RdYlGn",
+    linewidths=0.5,
+    linecolor='gray',
+    ax=ax_hm,
+    cbar_kws={'label': 'Metric'},
+    annot_kws={"fontsize": 9},
+    xticklabels=True,
+    yticklabels=True,
+    cbar=True
+)
+
+    # Apply custom formatting for annotations
+    for text in ax_hm.texts:
+        try:
+            val = float(text.get_text().replace(',', ''))
+            if toggle_heatmap_metric == "Average P&L":
+                if abs(val) >= 1000:
+                    formatted = f"(£{abs(val)/1000:.1f}k)" if val < 0 else f"£{val/1000:.1f}k"
+                else:
+                    formatted = f"(£{int(round(abs(val)))})" if val < 0 else f"£{int(round(val))}"
+            else:
+                formatted = f"{int(val)}"
+            text.set_text(formatted)
+        except:
+            continue
+    ax_hm.set_facecolor('black')
+    ax_hm.set_title("Heatmap of Day Outcomes by Weekday")
+    st.pyplot(fig_hm)
+    figs.append(fig_hm)
+
+    st.subheader("Daily Net P&L")
+    daily = df.groupby('DATE')[pnl_col].sum().sort_index()
+    fig2, ax2 = plt.subplots()
+    daily.index = daily.index.to_series().apply(format_ordinal_date)
+    daily.plot(kind='bar', ax=ax2)
+    st.pyplot(fig2)
+
+    formatted_daily = (
+        daily.reset_index()
+        .rename(columns={pnl_col: 'Net P&L (£)'})
+        .assign(DATE=pd.to_datetime(daily.index))
+        .sort_values('DATE')
+        .assign(DATE=lambda x: x['DATE'].apply(format_ordinal_date))
+        .reset_index(drop=True)
+    )
+
+    st.dataframe(
+        formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''),
+        use_container_width=True
+    )
+    figs.append(fig2)
+
+    st.subheader("Trades by Hour")
+    fig3, ax3 = plt.subplots()
+    sns.countplot(data=df, x='HOUR', palette='coolwarm', ax=ax3)
+    st.pyplot(fig3)
+    figs.append(fig3)
+
+    st.subheader("Net P&L by Product")
+    product_pnl = df.groupby('PRODUCT')[pnl_col].sum().sort_values()
+    fig4, ax4 = plt.subplots()
+    product_pnl.plot(kind='barh', ax=ax4)
+    ax4.set_xlabel('Net P&L')
+    ax4.set_xticklabels([f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}" for x in ax4.get_xticks()])
+    st.pyplot(fig4)
+    figs.append(fig4)
+
+    st.subheader("Intraday Cumulative P&L")
+    intraday = df.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
+    intraday['Cumulative P&L'] = intraday.groupby('DATE')[pnl_col].cumsum()
+    fig5, ax5 = plt.subplots(figsize=(10, 5))
+    for date in intraday['DATE'].unique():
+        subset = intraday[intraday['DATE'] == date]
+        label = format_ordinal_date(date)
+        ax5.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=label)
+    ax5.axhline(0, color='gray', linestyle='--')
+    ax5.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax5.set_xticklabels([])
+    ax5.set_ylabel('Cumulative P&L')
+    ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}"))
+    st.pyplot(fig5)
+    figs.append(fig5)
+    st.subheader("Buy vs Sell Performance")
+    direction_summary = df.groupby('Direction')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Trades', 'mean': 'Avg P&L', 'sum': 'Total P&L'})
+    st.dataframe(direction_summary.style.format({
+        'Avg P&L': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
+        'Total P&L': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
+    }))
+
+    st.subheader("Trade Duration Summary")
+    st.markdown("**Note:** Duration reflects time between opening and closing a position.")
+    duration_minutes = df['Trade Duration'].dt.total_seconds().div(60).dropna()
+    st.write("Min Duration:", f"{duration_minutes.min():.1f} mins")
+    st.write("Max Duration:", f"{duration_minutes.max():.1f} mins")
+    st.write("Average Duration:", f"{duration_minutes.mean():.1f} mins")
+
+    dur_min, dur_max = st.slider("Filter trades by duration (minutes)", 0, int(duration_minutes.max()), (0, int(duration_minutes.max())))
+    duration_filtered = duration_minutes[(duration_minutes >= dur_min) & (duration_minutes <= dur_max)]
+
+    fig_dur, ax_dur = plt.subplots()
+    sns.histplot(duration_filtered, bins=30, kde=True, ax=ax_dur)
+    ax_dur.set_xlabel("Trade Duration (minutes)")
+    ax_dur.set_ylabel("Number of Trades")
+    st.pyplot(fig_dur)
+    figs.append(fig_dur)
+
+    st.subheader("Manual vs. Stop-Loss Exits")
+    fig6, ax6 = plt.subplots()
+    loss_only = df[df[pnl_col] < 0]
+    sns.countplot(data=loss_only, x='TYPE', palette='pastel', ax=ax6)
+    ax6.set_title("Exit Method Distribution (Losses Only)")
+    st.pyplot(fig6)
+    figs.append(fig6)
+
+    st.subheader("Exit Method Performance Comparison")
+    method_perf = df[df[pnl_col] < 0].groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Loss Trades', 'mean': 'Avg Loss', 'sum': 'Total Loss'})
+    st.dataframe(method_perf.style.format({
+        'Avg Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
+        'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
+    }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
+
     # Trade Duration Summary (moved below)
     st.subheader("Trade Duration Summary")
     duration_seconds = df['Trade Duration (s)'].dropna()
@@ -111,3 +290,14 @@ if upload:
     ax_dur.set_xlabel("Trade Duration (seconds)")
     ax_dur.set_ylabel("Number of Trades")
     st.pyplot(fig_dur)
+
+    st.markdown("---")
+    if st.button("📄 Export All Charts to PDF"):
+        buffer = BytesIO()
+        with PdfPages(buffer) as pdf:
+            for fig in figs:
+                pdf.savefig(fig, bbox_inches='tight')
+        buffer.seek(0)
+        st.download_button("Download PDF Report", buffer, file_name="trading_report.pdf", mime="application/pdf")
+
+    st.caption("Upload a new file or adjust filters via the sidebar to refresh analysis.")
