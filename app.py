@@ -271,7 +271,7 @@ if upload:
     st.subheader("Trade Duration Summary")
 
     # Recalculate display durations
-    duration_unit = duration_unit_sidebar
+    duration_unit = st.radio("Display Duration In:", options=["Seconds", "Minutes"], horizontal=True)
     durations = duration_seconds if duration_unit == "Seconds" else duration_seconds.div(60)
 
     st.write("Min Duration:", f"{durations.min():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
@@ -313,8 +313,6 @@ if upload:
             for x in dur_pnl.values
         ])
     st.pyplot(fig_dur_pnl)
-    duration_unit = st.radio("Display Duration In:", options=["Seconds", "Minutes"], horizontal=True)
-    durations = duration_seconds if duration_unit == "Seconds" else duration_seconds.div(60)
 
     st.markdown("---")
     if st.button("📄 Export All Charts to PDF"):
