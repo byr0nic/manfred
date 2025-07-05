@@ -10,6 +10,7 @@ def format_ordinal_date(date_obj):
     suffix = "th" if 11 <= day <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
     return f"{day}{suffix} {date_obj.strftime('%b %y')}"
 
+  
 # Load data
 @st.cache_data
 
@@ -19,9 +20,7 @@ def load_data(upload):
     df = raw_df[raw_df['TYPE'].isin(['Close Bet', 'Stop Loss'])].copy()
     df['BEGIN DATE/TIME'] = raw_df['DATE/TIME'].shift(-1).loc[df.index]
     df['Direction'] = raw_df['TYPE'].shift(-1).loc[df.index]
-    df['Direction'] = df['Direction'].apply(
-        lambda x: 'Sell' if pd.notna(x) and 'Sell' in x else 'Buy' if pd.notna(x) and 'Buy' in x else x
-    )
+    df['Direction'] = df['Direction'].apply(lambda x: 'Sell' if pd.notna(x) and 'Sell' in x else 'Buy' if pd.notna(x) and 'Buy' in x else x)
     df['Trade Duration (s)'] = (df['DATE/TIME'] - df['BEGIN DATE/TIME']).dt.total_seconds().abs().astype('Int64')
     df.rename(columns={'DATE/TIME': 'CLOSE DATE/TIME'}, inplace=True)
     df['DATE/TIME'] = df['BEGIN DATE/TIME']
@@ -36,6 +35,7 @@ def load_data(upload):
     df['DATETIME_HOUR'] = df['DATE/TIME'].dt.floor('h')
     df['PRODUCT'] = df['PRODUCT'].str.strip()
     return df
+
 
 # Sidebar upload
 st.sidebar.title("Upload Trade History CSV")
@@ -96,9 +96,8 @@ if upload:
         df = pnl_sorted.iloc[bottom_n:n - top_n if top_n > 0 else n]
     pnl_col = 'Net P&L (Adj)' if (use_stop or use_takeprofit or use_trailing) else 'Net P&L'
 
-    # Trade Duration Summary
+    # Trade Duration Summary (moved below)
     st.subheader("Trade Duration Summary")
-    st.markdown("**Note:** Duration reflects time between opening and closing a position.")
     duration_seconds = df['Trade Duration (s)'].dropna()
     st.write("Min Duration:", f"{duration_seconds.min():,.0f} secs")
     st.write("Max Duration:", f"{duration_seconds.max():,.0f} secs")
