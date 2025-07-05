@@ -300,18 +300,21 @@ if upload:
     st.subheader("Average P&L by Duration Bucket")
     fig_dur_pnl, ax_dur_pnl = plt.subplots()
     dur_pnl = df.groupby('Duration Bucket')[pnl_col].mean().reindex(labels)
-    sns.barplot(x=dur_pnl.index, y=dur_pnl.values, palette="RdYlGn", ax=ax_dur_pnl)
+    bar_container = sns.barplot(x=dur_pnl.index, y=dur_pnl.values, palette="RdYlGn", ax=ax_dur_pnl)
     ax_dur_pnl.set_ylabel("Average P&L")
     ax_dur_pnl.set_xlabel("Duration Bucket")
     ax_dur_pnl.set_xticklabels(dur_pnl.index)
-    for container in ax_dur_pnl.containers:
-        ax_dur_pnl.bar_label(container, labels=[
-            f"(£{abs(x)/1000:.1f}k)" if x < -999 else 
-            f"(£{int(round(abs(x)))})" if x < 0 else 
-            f"£{x/1000:.1f}k" if x > 999 else 
-            f"£{int(round(x))}" 
-            for x in dur_pnl.values
-        ])
+    for container in bar_container.containers if hasattr(bar_container, 'containers') else ax_dur_pnl.containers:
+        try:
+            ax_dur_pnl.bar_label(container, labels=[
+                f"(£{abs(x)/1000:.1f}k)" if x < -999 else 
+                f"(£{int(round(abs(x)))})" if x < 0 else 
+                f"£{x/1000:.1f}k" if x > 999 else 
+                f"£{int(round(x))}" 
+                for x in dur_pnl.values
+            ])
+        except Exception as e:
+            st.warning(f"Label formatting failed: {e}")
     st.pyplot(fig_dur_pnl)
 
     st.markdown("---")
