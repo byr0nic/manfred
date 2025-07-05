@@ -25,6 +25,8 @@ def load_data(upload):
     df['HOUR'] = df['DATE/TIME'].dt.hour
     df['DATETIME_HOUR'] = df['DATE/TIME'].dt.floor('h')
     df['PRODUCT'] = df['PRODUCT'].str.strip()
+    df['Trade Duration'] = df['DATE/TIME'].shift(-1) - df['DATE/TIME']
+    df['Direction'] = df['TYPE'].shift(-1)
     return df
 
 # Sidebar upload
@@ -227,6 +229,30 @@ if upload:
     ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}"))
     st.pyplot(fig5)
     figs.append(fig5)
+    st.subheader("Buy vs Sell Performance")
+    direction_summary = df.groupby('Direction')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Trades', 'mean': 'Avg P&L', 'sum': 'Total P&L'})
+    st.dataframe(direction_summary.style.format({
+        'Avg P&L': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
+        'Total P&L': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
+    }))
+
+    st.subheader("Trade Duration Summary")
+    st.markdown("**Note:** Duration reflects time between opening and closing a position.")
+    duration_minutes = df['Trade Duration'].dt.total_seconds().div(60).dropna()
+    st.write("Min Duration:", f"{duration_minutes.min():.1f} mins")
+    st.write("Max Duration:", f"{duration_minutes.max():.1f} mins")
+    st.write("Average Duration:", f"{duration_minutes.mean():.1f} mins")
+
+    dur_min, dur_max = st.slider("Filter trades by duration (minutes)", 0, int(duration_minutes.max()), (0, int(duration_minutes.max())))
+    duration_filtered = duration_minutes[(duration_minutes >= dur_min) & (duration_minutes <= dur_max)]
+
+    fig_dur, ax_dur = plt.subplots()
+    sns.histplot(duration_filtered, bins=30, kde=True, ax=ax_dur)
+    ax_dur.set_xlabel("Trade Duration (minutes)")
+    ax_dur.set_ylabel("Number of Trades")
+    st.pyplot(fig_dur)
+    figs.append(fig_dur)
+
     st.subheader("Manual vs. Stop-Loss Exits")
     fig6, ax6 = plt.subplots()
     loss_only = df[df[pnl_col] < 0]
