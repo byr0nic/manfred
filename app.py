@@ -59,6 +59,11 @@ if upload:
     use_trailing = st.sidebar.checkbox("Apply trailing stop-loss on gains")
     trailing_gap = st.sidebar.number_input("Trailing stop gap (£)", min_value=0, max_value=10000, value=150, step=10)
 
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Outlier Filtering")
+    bottom_pct = st.sidebar.slider("Remove bottom X% trades", 0, 50, 0, step=1)
+    top_pct = st.sidebar.slider("Remove top X% trades", 0, 50, 0, step=1)
+
     def apply_simulation(row):
         pnl = row['Net P&L']
         if use_stop and pnl < -stop_level:
@@ -70,6 +75,14 @@ if upload:
         return pnl
 
     df['Net P&L (Adj)'] = df.apply(apply_simulation, axis=1)
+
+    # Apply outlier trimming
+    if bottom_pct > 0 or top_pct > 0:
+        pnl_sorted = df.sort_values('Net P&L (Adj)')
+        n = len(pnl_sorted)
+        bottom_n = int(n * bottom_pct / 100)
+        top_n = int(n * top_pct / 100)
+        df = pnl_sorted.iloc[bottom_n:n - top_n if top_n > 0 else n]
     pnl_col = 'Net P&L (Adj)' if (use_stop or use_takeprofit or use_trailing) else 'Net P&L'
 
     # Summary stats
