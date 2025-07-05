@@ -58,9 +58,9 @@ if upload:
     if len(date_range) == 2:
         df = df[(df['DATE/TIME'].dt.date >= date_range[0]) & (df['DATE/TIME'].dt.date <= date_range[1])]
     df = df[(df['STAKE'] >= stake_range[0]) & (df['STAKE'] <= stake_range[1])]
-    df = duration_seconds[(duration_seconds >= dur_min) & (duration_seconds <= dur_max)]  
+    df = df[(df['Trade Duration (s)'] >= dur_min) & (df['Trade Duration (s)'] <= dur_max)]
     df = df[df['Trade Outcome'].isin(result_filter)]
-    df = df[df['Direction'].isin(result_filter)]
+    df = df[df['Direction'].isin(direction_filter)]
 
     # Simulations
     st.sidebar.subheader("Simulations")
