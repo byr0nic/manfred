@@ -304,7 +304,7 @@ if upload:
     ax_dur_pnl.set_ylabel("Average P&L")
     ax_dur_pnl.set_xlabel("Duration Bucket")
     ax_dur_pnl.set_xticklabels(dur_pnl.index)
-    for container in bar_container.containers if hasattr(bar_container, 'containers') else ax_dur_pnl.containers:
+    for container in ax_dur_pnl.containers:
         try:
             ax_dur_pnl.bar_label(container, labels=[
                 f"(£{abs(x)/1000:.1f}k)" if x < -999 else 
