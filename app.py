@@ -51,14 +51,19 @@ if upload:
     stake_range = st.sidebar.slider("Stake Range", float(df['STAKE'].min()), float(df['STAKE'].max()), (float(df['STAKE'].min()), float(df['STAKE'].max())))
     result_filter = st.sidebar.multiselect("Trade Outcome", options=df['Trade Outcome'].unique(), default=df['Trade Outcome'].unique())
     direction_filter = st.sidebar.multiselect("Direction", options=df['Direction'].dropna().unique(), default=df['Direction'].dropna().unique())
+    duration_unit_sidebar = st.sidebar.radio("Trade Duration Unit", options=["Seconds", "Minutes"], horizontal=True)
     duration_seconds = df['Trade Duration (s)'].dropna()
-    dur_min, dur_max = st.sidebar.slider("Trade Duration (seconds)", 0, int(duration_seconds.max()), (0, int(duration_seconds.max())))
+    durations_sidebar = duration_seconds if duration_unit_sidebar == "Seconds" else duration_seconds.div(60)
+    dur_min, dur_max = st.sidebar.slider(f"Trade Duration ({'seconds' if duration_unit_sidebar == 'Seconds' else 'minutes'})", 0, int(durations_sidebar.max()), (0, int(durations_sidebar.max())))), (0, int(duration_seconds.max())))
 
     # Apply filters
     if len(date_range) == 2:
         df = df[(df['DATE/TIME'].dt.date >= date_range[0]) & (df['DATE/TIME'].dt.date <= date_range[1])]
     df = df[(df['STAKE'] >= stake_range[0]) & (df['STAKE'] <= stake_range[1])]
-    df = df[(df['Trade Duration (s)'] >= dur_min) & (df['Trade Duration (s)'] <= dur_max)]
+    if duration_unit_sidebar == 'Seconds':
+        df = df[(df['Trade Duration (s)'] >= dur_min) & (df['Trade Duration (s)'] <= dur_max)]
+    else:
+        df = df[(df['Trade Duration (s)'] >= dur_min * 60) & (df['Trade Duration (s)'] <= dur_max * 60)]
     df = df[df['Trade Outcome'].isin(result_filter)]
     df = df[df['Direction'].isin(direction_filter)]
 
