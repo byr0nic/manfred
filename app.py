@@ -269,6 +269,29 @@ if upload:
     }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
 
     st.subheader("Trade Duration Summary")
+
+    # Duration Buckets
+    bins = [0, 15, 60, 120, 300, 900, float('inf')]
+    labels = ["<15s", "15-60s", "1-2m", "2-5m", "5-15m", ">15m"]
+    df['Duration Bucket'] = pd.cut(df['Trade Duration (s)'], bins=bins, labels=labels, right=False)
+
+    st.subheader("Trade Distribution by Duration Bucket")
+    fig_dur_dist, ax_dur_dist = plt.subplots()
+    dur_counts = df['Duration Bucket'].value_counts().sort_index()
+    sns.barplot(x=dur_counts.index, y=dur_counts.values, palette="Blues", ax=ax_dur_dist)
+    ax_dur_dist.set_ylabel("Number of Trades")
+    ax_dur_dist.set_xlabel("Duration Bucket")
+    st.pyplot(fig_dur_dist)
+
+    st.subheader("Average P&L by Duration Bucket")
+    fig_dur_pnl, ax_dur_pnl = plt.subplots()
+    dur_pnl = df.groupby('Duration Bucket')[pnl_col].mean().reindex(labels)
+    sns.barplot(x=dur_pnl.index, y=dur_pnl.values, palette="RdYlGn", ax=ax_dur_pnl)
+    ax_dur_pnl.set_ylabel("Average P&L")
+    ax_dur_pnl.set_xlabel("Duration Bucket")
+    ax_dur_pnl.set_xticklabels(dur_pnl.index)
+    ax_dur_pnl.bar_label(ax_dur_pnl.containers[0], labels=[f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}" for x in dur_pnl.values])
+    st.pyplot(fig_dur_pnl)
     duration_unit = st.radio("Display Duration In:", options=["Seconds", "Minutes"], horizontal=True)
     durations = duration_seconds if duration_unit == "Seconds" else duration_seconds.div(60)
 
