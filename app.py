@@ -264,14 +264,16 @@ if upload:
     }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
 
     st.subheader("Trade Duration Summary")
-    duration_seconds = df['Trade Duration (s)'].dropna()
-    st.write("Min Duration:", f"{duration_seconds.min():,.0f} secs")
-    st.write("Max Duration:", f"{duration_seconds.max():,.0f} secs")
-    st.write("Average Duration:", f"{duration_seconds.mean():,.1f} secs")
+    duration_unit = st.radio("Display Duration In:", options=["Seconds", "Minutes"], horizontal=True)
+    durations = duration_seconds if duration_unit == "Seconds" else duration_seconds.div(60)
+
+    st.write("Min Duration:", f"{durations.min():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
+    st.write("Max Duration:", f"{durations.max():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
+    st.write("Average Duration:", f"{durations.mean():,.1f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
 
     fig_dur, ax_dur = plt.subplots()
-    sns.histplot(duration_seconds, bins=30, kde=True, ax=ax_dur)
-    ax_dur.set_xlabel("Trade Duration (seconds)")
+    sns.histplot(durations, bins=30, kde=True, ax=ax_dur)
+    ax_dur.set_xlabel(f"Trade Duration ({'seconds' if duration_unit == 'Seconds' else 'minutes'})")
     ax_dur.set_ylabel("Number of Trades")
     st.pyplot(fig_dur)
 
