@@ -290,7 +290,14 @@ if upload:
     ax_dur_pnl.set_ylabel("Average P&L")
     ax_dur_pnl.set_xlabel("Duration Bucket")
     ax_dur_pnl.set_xticklabels(dur_pnl.index)
-    ax_dur_pnl.bar_label(ax_dur_pnl.containers[0], labels=[f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}" for x in dur_pnl.values])
+    for container in ax_dur_pnl.containers:
+        ax_dur_pnl.bar_label(container, labels=[
+            f"(£{abs(x)/1000:.1f}k)" if x < -999 else 
+            f"(£{int(round(abs(x)))})" if x < 0 else 
+            f"£{x/1000:.1f}k" if x > 999 else 
+            f"£{int(round(x))}" 
+            for x in dur_pnl.values
+        ])
     st.pyplot(fig_dur_pnl)
     duration_unit = st.radio("Display Duration In:", options=["Seconds", "Minutes"], horizontal=True)
     durations = duration_seconds if duration_unit == "Seconds" else duration_seconds.div(60)
