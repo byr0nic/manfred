@@ -50,12 +50,17 @@ if upload:
     date_range = st.sidebar.date_input("Select Date Range", [min_date, max_date])
     stake_range = st.sidebar.slider("Stake Range", float(df['STAKE'].min()), float(df['STAKE'].max()), (float(df['STAKE'].min()), float(df['STAKE'].max())))
     result_filter = st.sidebar.multiselect("Trade Outcome", options=df['Trade Outcome'].unique(), default=df['Trade Outcome'].unique())
+    direction_filter = st.sidebar.multiselect("Direction", options=df['Direction'].dropna().unique(), default=df['Direction'].dropna().unique())
+    duration_seconds = df['Trade Duration (s)'].dropna()
+    dur_min, dur_max = st.sidebar.slider("Trade Duration (seconds)", 0, int(duration_seconds.max()), (0, int(duration_seconds.max())))), (0, int(duration_seconds.max())))
 
     # Apply filters
     if len(date_range) == 2:
         df = df[(df['DATE/TIME'].dt.date >= date_range[0]) & (df['DATE/TIME'].dt.date <= date_range[1])]
     df = df[(df['STAKE'] >= stake_range[0]) & (df['STAKE'] <= stake_range[1])]
+    df = duration_seconds[(duration_seconds >= dur_min) & (duration_seconds <= dur_max)]  
     df = df[df['Trade Outcome'].isin(result_filter)]
+    df = df[df['Direction'].isin(result_filter)]
 
     # Simulations
     st.sidebar.subheader("Simulations")
@@ -263,9 +268,6 @@ if upload:
     st.write("Min Duration:", f"{duration_seconds.min():,.0f} secs")
     st.write("Max Duration:", f"{duration_seconds.max():,.0f} secs")
     st.write("Average Duration:", f"{duration_seconds.mean():,.1f} secs")
-
-    dur_min, dur_max = st.slider("Filter trades by duration (seconds)", 0, int(duration_seconds.max()), (0, int(duration_seconds.max())))
-    duration_filtered = duration_seconds[(duration_seconds >= dur_min) & (duration_seconds <= dur_max)]
 
     fig_dur, ax_dur = plt.subplots()
     sns.histplot(duration_filtered, bins=30, kde=True, ax=ax_dur)
