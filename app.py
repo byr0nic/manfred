@@ -270,6 +270,10 @@ if upload:
 
     st.subheader("Trade Duration Summary")
 
+    # Recalculate display durations
+    duration_unit = duration_unit_sidebar
+    durations = duration_seconds if duration_unit == "Seconds" else duration_seconds.div(60)
+
     st.write("Min Duration:", f"{durations.min():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
     st.write("Max Duration:", f"{durations.max():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
     st.write("Average Duration:", f"{durations.mean():,.1f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
