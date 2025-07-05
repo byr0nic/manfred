@@ -243,23 +243,6 @@ if upload:
         'Total P&L': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
     }))
 
-    st.subheader("Trade Duration Summary")
-    st.markdown("**Note:** Duration reflects time between opening and closing a position.")
-    duration_minutes = df['Trade Duration (s)'].div(60).dropna()
-    st.write("Min Duration:", f"{duration_minutes.min():.1f} mins")
-    st.write("Max Duration:", f"{duration_minutes.max():.1f} mins")
-    st.write("Average Duration:", f"{duration_minutes.mean():.1f} mins")
-
-    dur_min, dur_max = st.slider("Filter trades by duration (minutes)", 0, int(duration_minutes.max()), (0, int(duration_minutes.max())))
-    duration_filtered = duration_minutes[(duration_minutes >= dur_min) & (duration_minutes <= dur_max)]
-
-    fig_dur, ax_dur = plt.subplots()
-    sns.histplot(duration_filtered, bins=30, kde=True, ax=ax_dur)
-    ax_dur.set_xlabel("Trade Duration (minutes)")
-    ax_dur.set_ylabel("Number of Trades")
-    st.pyplot(fig_dur)
-    figs.append(fig_dur)
-
     st.subheader("Manual vs. Stop-Loss Exits")
     fig6, ax6 = plt.subplots()
     loss_only = df[df[pnl_col] < 0]
@@ -275,7 +258,6 @@ if upload:
         'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
     }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
 
-    # Trade Duration Summary (moved below)
     st.subheader("Trade Duration Summary")
     duration_seconds = df['Trade Duration (s)'].dropna()
     st.write("Min Duration:", f"{duration_seconds.min():,.0f} secs")
