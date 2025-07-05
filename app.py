@@ -245,7 +245,7 @@ if upload:
 
     st.subheader("Trade Duration Summary")
     st.markdown("**Note:** Duration reflects time between opening and closing a position.")
-    duration_minutes = df['Trade Duration'].dt.total_seconds().div(60).dropna()
+    duration_minutes = df['Trade Duration (s)'].div(60).dropna()
     st.write("Min Duration:", f"{duration_minutes.min():.1f} mins")
     st.write("Max Duration:", f"{duration_minutes.max():.1f} mins")
     st.write("Average Duration:", f"{duration_minutes.mean():.1f} mins")
