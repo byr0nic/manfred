@@ -270,7 +270,7 @@ if upload:
     st.write("Average Duration:", f"{duration_seconds.mean():,.1f} secs")
 
     fig_dur, ax_dur = plt.subplots()
-    sns.histplot(duration_filtered, bins=30, kde=True, ax=ax_dur)
+    sns.histplot(duration_seconds, bins=30, kde=True, ax=ax_dur)
     ax_dur.set_xlabel("Trade Duration (seconds)")
     ax_dur.set_ylabel("Number of Trades")
     st.pyplot(fig_dur)
