@@ -182,36 +182,23 @@ if upload:
     figs.append(fig2)
 
     st.subheader("Intraday Cumulative P&L")
-    intraday = df.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
-    intraday['Cumulative P&L'] = intraday.groupby('DATE')[pnl_col].cumsum()
-    fig5, ax5 = plt.subplots(figsize=(10, 5))
-    for date in intraday['DATE'].unique():
-        subset = intraday[intraday['DATE'] == date]
-        label = format_ordinal_date(date)
-        ax5.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=label)
-    ax5.axhline(0, color='gray', linestyle='--')
-    ax5.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
-    ax5.set_xticklabels([])
-    ax5.set_ylabel('P&L')
-    ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}"))
-    st.pyplot(fig5)
-    figs.append(fig5)
-
-    st.subheader("Intraday Cumulative P&L Comparison")
     fig_compare, ax_compare = plt.subplots(figsize=(10, 5))
     df_original_grouped = df_original.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
     df_original_grouped['Cumulative P&L'] = df_original_grouped.groupby('DATE')[pnl_col].cumsum()
     for date in df_original_grouped['DATE'].unique():
         subset = df_original_grouped[df_original_grouped['DATE'] == date]
+        label = format_ordinal_date(date)
         ax_compare.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], color='black', linestyle='--', alpha=0.5, label=f"{date} (original)")
     df_grouped = df.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
     df_grouped['Cumulative P&L'] = df_grouped.groupby('DATE')[pnl_col].cumsum()
     for date in df_grouped['DATE'].unique():
         subset = df_grouped[df_grouped['DATE'] == date]
+        label = format_ordinal_date(date)
         ax_compare.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=f"{date} (filtered)")
     ax_compare.axhline(0, color='gray', linestyle='--')
     ax_compare.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
-    ax_compare.set_ylabel('Cumulative P&L')
+    ax_compare.set_ylabel('P&L')
+    ax_compare.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}"))
     ax_compare.set_xticklabels([])
     st.pyplot(fig_compare)
 
