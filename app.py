@@ -200,6 +200,30 @@ if upload:
     ax3.set_xlabel('hour')
     st.pyplot(fig3)
     figs.append(fig3)
+
+    # Side-by-side Intraday Cumulative P&L
+    st.subheader("Intraday Cumulative P&L Comparison")
+    fig_compare, ax_compare = plt.subplots(figsize=(10, 5))
+
+    df_original_grouped = df_original.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
+    df_original_grouped['Cumulative P&L'] = df_original_grouped.groupby('DATE')[pnl_col].cumsum()
+
+    for date in df_original_grouped['DATE'].unique():
+        subset = df_original_grouped[df_original_grouped['DATE'] == date]
+        ax_compare.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], color='black', linestyle='--', alpha=0.5, label=f"{date} (original)")
+
+    df_grouped = df.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
+    df_grouped['Cumulative P&L'] = df_grouped.groupby('DATE')[pnl_col].cumsum()
+
+    for date in df_grouped['DATE'].unique():
+        subset = df_grouped[df_grouped['DATE'] == date]
+        ax_compare.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=f"{date} (filtered)")
+
+    ax_compare.axhline(0, color='gray', linestyle='--')
+    ax_compare.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax_compare.set_ylabel('Cumulative P&L')
+    ax_compare.set_xticklabels([])
+    st.pyplot(fig_compare)
     
     st.subheader("Trade Duration Summary")
     # Recalculate display durations
