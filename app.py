@@ -103,6 +103,10 @@ if upload:
     use_trailing = False
     # use_trailing = st.sidebar.checkbox("Apply trailing stop-loss on gains")
     # trailing_gap = st.sidebar.number_input("Trailing stop gap (£)", min_value=0, max_value=10000, value=150, step=10)
+
+    # Remove Filters Button
+    if st.sidebar.button("Remove All Filters"):
+        st.experimental_rerun()
     
     def apply_simulation(row):
         pnl = row['Net P&L']
