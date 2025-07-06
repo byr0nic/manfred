@@ -67,6 +67,12 @@ if upload:
     df = df[df['Trade Outcome'].isin(result_filter)]
     df = df[df['Direction'].isin(direction_filter)]
 
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Outlier Filtering")
+    use_outlier_filtering = st.sidebar.checkbox("Enable outlier filtering")
+    bottom_pct = st.sidebar.slider("Remove bottom X% trades", 0, 50, 0, step=1)
+    top_pct = st.sidebar.slider("Remove top X% trades", 0, 50, 0, step=1)
+
     # Simulations
     st.sidebar.subheader("Simulations")
     use_stop = st.sidebar.checkbox("Apply stop-loss on losses")
@@ -75,15 +81,9 @@ if upload:
     use_takeprofit = st.sidebar.checkbox("Apply take-profit on gains")
     takeprofit_level = st.sidebar.number_input("Take-profit threshold (£)", min_value=0, max_value=10000, value=300, step=10)
 
-    use_trailing = st.sidebar.checkbox("Apply trailing stop-loss on gains")
-    trailing_gap = st.sidebar.number_input("Trailing stop gap (£)", min_value=0, max_value=10000, value=150, step=10)
-
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("Outlier Filtering")
-    use_outlier_filtering = st.sidebar.checkbox("Enable outlier filtering")
-    bottom_pct = st.sidebar.slider("Remove bottom X% trades", 0, 50, 0, step=1)
-    top_pct = st.sidebar.slider("Remove top X% trades", 0, 50, 0, step=1)
-
+    # use_trailing = st.sidebar.checkbox("Apply trailing stop-loss on gains")
+    # trailing_gap = st.sidebar.number_input("Trailing stop gap (£)", min_value=0, max_value=10000, value=150, step=10)
+    
     def apply_simulation(row):
         pnl = row['Net P&L']
         if use_stop and pnl < -stop_level:
@@ -160,6 +160,29 @@ if upload:
     )
     figs.append(fig2)
 
+    st.subheader("Intraday Cumulative P&L")
+    intraday = df.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
+    intraday['Cumulative P&L'] = intraday.groupby('DATE')[pnl_col].cumsum()
+    fig5, ax5 = plt.subplots(figsize=(10, 5))
+    for date in intraday['DATE'].unique():
+        subset = intraday[intraday['DATE'] == date]
+        label = format_ordinal_date(date)
+        ax5.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=label)
+    ax5.axhline(0, color='gray', linestyle='--')
+    ax5.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax5.set_xticklabels([])
+    ax5.set_ylabel('P&L')
+    ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}"))
+    st.pyplot(fig5)
+    figs.append(fig5)
+
+    st.subheader("Trades by Hour")
+    fig3, ax3 = plt.subplots()
+    sns.countplot(data=df, x='HOUR', palette='coolwarm', ax=ax3)
+    ax3.set_xlabel('hour')
+    st.pyplot(fig3)
+    figs.append(fig3)
+    
     st.subheader("Winning/Losing Days by Weekday")
     daily_wl = df.groupby('DATE')[pnl_col].sum().reset_index()
     daily_wl['Outcome'] = daily_wl[pnl_col].apply(lambda x: 'winning' if x > 0 else 'losing' if x < 0 else 'flat')
@@ -190,7 +213,7 @@ if upload:
         cbar_kws={'label': 'metric'},
         annot_kws={"fontsize": 9},
         xticklabels=True,
-        yticklabels=False,
+        yticklabels=True,
         cbar=False
     )
     # Apply custom formatting for annotations
@@ -212,39 +235,6 @@ if upload:
     st.pyplot(fig_hm)
     figs.append(fig_hm)
 
-    st.subheader("Trades by Hour")
-    fig3, ax3 = plt.subplots()
-    sns.countplot(data=df, x='HOUR', palette='coolwarm', ax=ax3)
-    ax3.set_xlabel('hour')
-    st.pyplot(fig3)
-    figs.append(fig3)
-
-    st.subheader("Net P&L by Product")
-    product_pnl = df.groupby('PRODUCT')[pnl_col].sum().sort_values()
-    fig4, ax4 = plt.subplots()
-    product_pnl.plot(kind='barh', ax=ax4)
-    ax4.set_ylabel('product')
-    ax4.set_xlabel('P&L')
-    ax4.set_xticklabels([f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}" for x in ax4.get_xticks()])
-    st.pyplot(fig4)
-    figs.append(fig4)
-
-    st.subheader("Intraday Cumulative P&L")
-    intraday = df.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
-    intraday['Cumulative P&L'] = intraday.groupby('DATE')[pnl_col].cumsum()
-    fig5, ax5 = plt.subplots(figsize=(10, 5))
-    for date in intraday['DATE'].unique():
-        subset = intraday[intraday['DATE'] == date]
-        label = format_ordinal_date(date)
-        ax5.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=label)
-    ax5.axhline(0, color='gray', linestyle='--')
-    ax5.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
-    ax5.set_xticklabels([])
-    ax5.set_ylabel('P&L')
-    ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}"))
-    st.pyplot(fig5)
-    figs.append(fig5)
-    
     st.subheader("Buy vs Sell Performance")
     direction_summary = df.groupby('Direction')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Trades', 'mean': 'Avg P&L', 'sum': 'Total P&L'})
     st.dataframe(direction_summary.style.format({
@@ -291,7 +281,7 @@ if upload:
     labels = ["<15s", "15-60s", "1-2m", "2-5m", "5-15m", "15-30m", ">30m"]
     df['Duration Bucket'] = pd.cut(df['Trade Duration (s)'], bins=bins, labels=labels, right=False)
 
-    st.subheader("Trade Distribution by Duration Bucket")
+    st.subheader("Trade Distribution by Duration")
     fig_dur_dist, ax_dur_dist = plt.subplots()
     dur_counts = df['Duration Bucket'].value_counts().sort_index()
     sns.barplot(x=dur_counts.index, y=dur_counts.values, palette="Blues", ax=ax_dur_dist)
@@ -299,7 +289,6 @@ if upload:
     ax_dur_dist.set_xlabel("duration")
     st.pyplot(fig_dur_dist)
 
-    st.subheader("Average P&L by Duration Bucket")
     fig_dur_pnl, ax_dur_pnl = plt.subplots()
     dur_pnl = df.groupby('Duration Bucket')[pnl_col].mean().reindex(labels)
     bars = ax_dur_pnl.bar(dur_pnl.index, dur_pnl.values, color=sns.color_palette("RdYlGn", len(dur_pnl)))
