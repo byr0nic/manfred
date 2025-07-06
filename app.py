@@ -132,9 +132,31 @@ if upload:
     fig1, ax1 = plt.subplots()
     df['outcome'] = df[pnl_col].apply(lambda x: 'win' if x > 0 else 'loss' if x < 0 else 'break-even')
     sns.countplot(data=df, x='outcome', palette='Set2', ax=ax1)
-
     st.pyplot(fig1)
     figs.append(fig1)
+
+    st.subheader("Daily Net P&L")
+    daily = df.groupby('DATE')[pnl_col].sum().sort_index()
+    fig2, ax2 = plt.subplots()
+    daily.index = daily.index.to_series().apply(format_ordinal_date)
+    daily.plot(kind='bar', ax=ax2)
+    ax2.set_xlabel('date')
+    st.pyplot(fig2)
+
+    formatted_daily = (
+        daily.reset_index()
+        .rename(columns={pnl_col: 'Net P&L (£)'})
+        .assign(DATE=pd.to_datetime(daily.index))
+        .sort_values('DATE')
+        .assign(DATE=lambda x: x['Date'].apply(format_ordinal_date))
+        .reset_index(drop=True)
+    )
+
+    st.dataframe(
+        formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''),
+        use_container_width=True
+    )
+    figs.append(fig2)
 
     # Win/Loss Distribution by Day Type
     st.subheader("Winning/Losing Days by Weekday")
@@ -193,29 +215,6 @@ if upload:
     ax_hm.set_title("Heatmap of Day Outcomes by Weekday")
     st.pyplot(fig_hm)
     figs.append(fig_hm)
-
-    st.subheader("Daily Net P&L")
-    daily = df.groupby('DATE')[pnl_col].sum().sort_index()
-    fig2, ax2 = plt.subplots()
-    daily.index = daily.index.to_series().apply(format_ordinal_date)
-    daily.plot(kind='bar', ax=ax2)
-    ax2.set_xlabel('date')
-    st.pyplot(fig2)
-
-    formatted_daily = (
-        daily.reset_index()
-        .rename(columns={pnl_col: 'Net P&L (£)'})
-        .assign(DATE=pd.to_datetime(daily.index))
-        .sort_values('DATE')
-        .assign(DATE=lambda x: x['DATE'].apply(format_ordinal_date))
-        .reset_index(drop=True)
-    )
-
-    st.dataframe(
-        formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''),
-        use_container_width=True
-    )
-    figs.append(fig2)
 
     st.subheader("Trades by Hour")
     fig3, ax3 = plt.subplots()
