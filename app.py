@@ -131,7 +131,7 @@ if upload:
     st.subheader("Win/Loss Distribution")
     fig1, ax1 = plt.subplots()
     df['Outcome'] = df[pnl_col].apply(lambda x: 'Win' if x > 0 else 'Loss' if x < 0 else 'Break-even')
-    sns.countplot(data=df, x='Outcome', palette='Set2', ax=ax1)
+    sns.countplot(data=df, x='outcome', palette='Set2', ax=ax1)
     
     st.pyplot(fig1)
     figs.append(fig1)
@@ -218,7 +218,7 @@ if upload:
 
     st.subheader("Trades by Hour")
     fig3, ax3 = plt.subplots()
-    sns.countplot(data=df, x='HOUR', palette='coolwarm', ax=ax3)
+    sns.countplot(data=df, x='hour', palette='coolwarm', ax=ax3)
     st.pyplot(fig3)
     figs.append(fig3)
 
@@ -256,7 +256,7 @@ if upload:
     st.subheader("Manual vs. Stop-Loss Exits")
     fig6, ax6 = plt.subplots()
     loss_only = df[df[pnl_col] < 0]
-    sns.countplot(data=loss_only, x='TYPE', palette='pastel', ax=ax6)
+    sns.countplot(data=loss_only, x='type', palette='pastel', ax=ax6)
     ax6.set_title("Exit Method Distribution (Losses Only)")
     st.pyplot(fig6)
     figs.append(fig6)
