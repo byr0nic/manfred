@@ -91,6 +91,12 @@ if upload:
         if limit_hours:
             df = df[df['Hours Since First'] < max_hours_per_day]
 
+    # Remove Filters Button (reset filters to defaults)
+    if st.sidebar.button("Reset Filters"):
+        st.experimental_set_query_params()  # clear all URL query params
+        st.session_state.clear()  # clear all session state
+        st.rerun()
+
     # Simulations
     st.sidebar.markdown("---")
     st.sidebar.subheader("Simulations")
@@ -104,10 +110,6 @@ if upload:
     # use_trailing = st.sidebar.checkbox("Apply trailing stop-loss on gains")
     # trailing_gap = st.sidebar.number_input("Trailing stop gap (£)", min_value=0, max_value=10000, value=150, step=10)
 
-    # Remove Filters Button
-    if st.sidebar.button("Remove All Filters"):
-        st.experimental_rerun()
-    
     def apply_simulation(row):
         pnl = row['Net P&L']
         if use_stop and pnl < -stop_level:
