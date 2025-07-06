@@ -278,6 +278,16 @@ if upload:
     st.write("Max Duration:", f"{durations.max():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
     st.write("Average Duration:", f"{durations.mean():,.1f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
 
+    # Calculate £ per unit time
+    total_duration = df['Trade Duration (s)'].sum()
+    gbp_per_second = df[pnl_col].sum() / total_duration if total_duration else 0
+    gbp_per_minute = gbp_per_second * 60
+
+    if duration_unit == "Seconds":
+        st.write("£ per Second:", f"\u00a3{gbp_per_second:.4f}/s")
+    else:
+        st.write("£ per Minute:", f"\u00a3{gbp_per_minute:.2f}/min")
+
     fig_dur, ax_dur = plt.subplots()
     sns.histplot(durations, bins=30, kde=True, ax=ax_dur)
     ax_dur.set_xlabel(f"Trade Duration ({'seconds' if duration_unit == 'Seconds' else 'minutes'})")
