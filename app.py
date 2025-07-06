@@ -272,7 +272,8 @@ if upload:
 
     # Recalculate display durations
     duration_unit = st.radio("Display Duration In:", options=["Seconds", "Minutes"], horizontal=True)
-    durations = duration_seconds if duration_unit == "Seconds" else duration_seconds.div(60)
+    durations = df['Trade Duration (s)'] if duration_unit == "Seconds" else df['Trade Duration (s)'].div(60)
+
 
     st.write("Min Duration:", f"{durations.min():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
     st.write("Max Duration:", f"{durations.max():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
