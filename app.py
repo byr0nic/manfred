@@ -253,27 +253,6 @@ if upload:
     st.pyplot(fig_hm)
     figs.append(fig_hm)
 
-    st.subheader("Buy vs Sell Performance")
-    direction_summary = df.groupby('Direction')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Trades', 'mean': 'Avg P&L', 'sum': 'Total P&L'})
-    st.dataframe(direction_summary.style.format({
-        'Avg P&L': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
-        'Total P&L': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
-    }))
-
-    st.subheader("Manual vs. Stop-Loss Exits")
-    fig6, ax6 = plt.subplots()
-    loss_only = df[df[pnl_col] < 0]
-    sns.countplot(data=loss_only, x='TYPE', palette='pastel', ax=ax6)
-    ax6.set_title("Exit Method Distribution (Losses Only)")
-    ax6.set_xlabel("type")
-    st.pyplot(fig6)
-    figs.append(fig6)
-    method_perf = df[df[pnl_col] < 0].groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Loss Trades', 'mean': 'Avg Loss', 'sum': 'Total Loss'})
-    st.dataframe(method_perf.style.format({
-        'Avg Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
-        'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
-    }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
-
     st.subheader("Trade Duration Summary")
     # Recalculate display durations
     duration_unit = st.radio("Display Duration In:", options=["Seconds", "Minutes"], horizontal=True)
@@ -326,6 +305,27 @@ if upload:
         ax_dur_pnl.text(bar.get_x() + bar.get_width() / 2, bar.get_height(), label,
                         ha='center', va='bottom', fontsize=8)
     st.pyplot(fig_dur_pnl)
+    
+    st.subheader("Buy vs Sell Performance")
+    direction_summary = df.groupby('Direction')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Trades', 'mean': 'Avg P&L', 'sum': 'Total P&L'})
+    st.dataframe(direction_summary.style.format({
+        'Avg P&L': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
+        'Total P&L': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
+    }))
+
+    st.subheader("Manual Exit vs. Stop-Loss Performance")
+    fig6, ax6 = plt.subplots()
+    loss_only = df[df[pnl_col] < 0]
+    sns.countplot(data=loss_only, x='TYPE', palette='pastel', ax=ax6)
+    ax6.set_title("Exit Method Distribution (Losses Only)")
+    ax6.set_xlabel("type")
+    st.pyplot(fig6)
+    figs.append(fig6)
+    method_perf = df[df[pnl_col] < 0].groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Loss Trades', 'mean': 'Avg Loss', 'sum': 'Total Loss'})
+    st.dataframe(method_perf.style.format({
+        'Avg Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
+        'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
+    }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
 
     st.markdown("---")
     if st.button("📄 Export All Charts to PDF"):
