@@ -199,6 +199,7 @@ if upload:
     fig2, ax2 = plt.subplots()
     daily.index = daily.index.to_series().apply(format_ordinal_date)
     daily.plot(kind='bar', ax=ax2)
+    ax2.set_xlabel('date')
     st.pyplot(fig2)
 
     formatted_daily = (
@@ -219,6 +220,7 @@ if upload:
     st.subheader("Trades by Hour")
     fig3, ax3 = plt.subplots()
     sns.countplot(data=df, x='HOUR', palette='coolwarm', ax=ax3)
+    ax3.set_xlabel('hour')
     st.pyplot(fig3)
     figs.append(fig3)
 
@@ -226,7 +228,8 @@ if upload:
     product_pnl = df.groupby('PRODUCT')[pnl_col].sum().sort_values()
     fig4, ax4 = plt.subplots()
     product_pnl.plot(kind='barh', ax=ax4)
-    ax4.set_xlabel('Net P&L')
+    ax4.set_ylabel('product')
+    ax4.set_xlabel('P&L')
     ax4.set_xticklabels([f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}" for x in ax4.get_xticks()])
     st.pyplot(fig4)
     figs.append(fig4)
@@ -242,7 +245,7 @@ if upload:
     ax5.axhline(0, color='gray', linestyle='--')
     ax5.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
     ax5.set_xticklabels([])
-    ax5.set_ylabel('Cumulative P&L')
+    ax5.set_ylabel('P&L')
     ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}"))
     st.pyplot(fig5)
     figs.append(fig5)
@@ -258,10 +261,10 @@ if upload:
     loss_only = df[df[pnl_col] < 0]
     sns.countplot(data=loss_only, x='TYPE', palette='pastel', ax=ax6)
     ax6.set_title("Exit Method Distribution (Losses Only)")
+    ax6.set_xlabel("type")
     st.pyplot(fig6)
     figs.append(fig6)
 
-    st.subheader("Exit Method Performance Comparison")
     method_perf = df[df[pnl_col] < 0].groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Loss Trades', 'mean': 'Avg Loss', 'sum': 'Total Loss'})
     st.dataframe(method_perf.style.format({
         'Avg Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
@@ -291,8 +294,8 @@ if upload:
 
     fig_dur, ax_dur = plt.subplots()
     sns.histplot(durations, bins=30, kde=True, ax=ax_dur)
-    ax_dur.set_xlabel(f"Trade Duration ({'seconds' if duration_unit == 'Seconds' else 'minutes'})")
-    ax_dur.set_ylabel("Number of Trades")
+    ax_dur.set_xlabel(f"duration ({'seconds' if duration_unit == 'Seconds' else 'minutes'})")
+    ax_dur.set_ylabel("trades")
     st.pyplot(fig_dur)
 
     # Duration Buckets
@@ -304,16 +307,16 @@ if upload:
     fig_dur_dist, ax_dur_dist = plt.subplots()
     dur_counts = df['Duration Bucket'].value_counts().sort_index()
     sns.barplot(x=dur_counts.index, y=dur_counts.values, palette="Blues", ax=ax_dur_dist)
-    ax_dur_dist.set_ylabel("Number of Trades")
-    ax_dur_dist.set_xlabel("Duration Bucket")
+    ax_dur_dist.set_ylabel("trades")
+    ax_dur_dist.set_xlabel("duration")
     st.pyplot(fig_dur_dist)
 
     st.subheader("Average P&L by Duration Bucket")
     fig_dur_pnl, ax_dur_pnl = plt.subplots()
     dur_pnl = df.groupby('Duration Bucket')[pnl_col].mean().reindex(labels)
     bars = ax_dur_pnl.bar(dur_pnl.index, dur_pnl.values, color=sns.color_palette("RdYlGn", len(dur_pnl)))
-    ax_dur_pnl.set_ylabel("Average P&L")
-    ax_dur_pnl.set_xlabel("Duration Bucket")
+    ax_dur_pnl.set_ylabel("P&L")
+    ax_dur_pnl.set_xlabel("duration")
     ax_dur_pnl.set_xticks(range(len(labels)))
     ax_dur_pnl.set_xticklabels(labels)
 
