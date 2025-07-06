@@ -179,14 +179,12 @@ if upload:
         hide_index=True
     )
     figs.append(fig2)
-
-    st.subheader("Intraday Cumulative P&L")
     fig_compare, ax_compare = plt.subplots(figsize=(10, 5))
     df_original_grouped = df_original.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
     df_original_grouped['Cumulative P&L'] = df_original_grouped.groupby('DATE')[pnl_col].cumsum()
     for date in df_original_grouped['DATE'].unique():
         subset = df_original_grouped[df_original_grouped['DATE'] == date]
-        ax_compare.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], color='black', linestyle='--', alpha=0.5, label=f"{format_ordinal_date(date)} (original)")
+        ax_compare.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], color='black', linestyle='--', alpha=0.5, label="original")
     df_grouped = df.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
     df_grouped['Cumulative P&L'] = df_grouped.groupby('DATE')[pnl_col].cumsum()
     for date in df_grouped['DATE'].unique():
