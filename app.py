@@ -130,7 +130,7 @@ if upload:
 
     st.subheader("Win/Loss Distribution")
     fig1, ax1 = plt.subplots()
-    df['Outcome'] = df[pnl_col].apply(lambda x: 'Win' if x > 0 else 'Loss' if x < 0 else 'Break-even')
+    df['outcome'] = df[pnl_col].apply(lambda x: 'Win' if x > 0 else 'Loss' if x < 0 else 'Break-even')
     sns.countplot(data=df, x='outcome', palette='Set2', ax=ax1)
     
     st.pyplot(fig1)
