@@ -72,6 +72,24 @@ if upload:
     bottom_pct = st.sidebar.slider("Remove bottom X% trades", 0, 50, 0, step=1)
     top_pct = st.sidebar.slider("Remove top X% trades", 0, 50, 0, step=1)
 
+    limit_trades = st.sidebar.checkbox("Enable trade limits per day")
+    max_trades_per_day = st.sidebar.number_input("Max trades", min_value=1, max_value=100, value=10, step=1) if limit_trades else None
+
+    limit_hours = st.sidebar.checkbox("Enable time limits per day")
+    max_hours_per_day = st.sidebar.number_input("Max trading hours", min_value=1, max_value=24, value=4, step=1) if limit_hours else None
+
+    if limit_trades or limit_hours:
+        df = df.sort_values(by=['DATE', 'DATE/TIME'])
+        df['Trade #'] = df.groupby('DATE').cumcount() + 1
+        df['Hour of Day'] = df['DATE/TIME'].dt.hour
+        first_hour = df.groupby('DATE')['Hour of Day'].transform('min')
+        df['Hours Since First'] = df['Hour of Day'] - first_hour
+
+        if limit_trades:
+            df = df[df['Trade #'] <= max_trades_per_day]
+        if limit_hours:
+            df = df[df['Hours Since First'] < max_hours_per_day]
+
     # Simulations
     st.sidebar.subheader("Simulations")
     use_stop = st.sidebar.checkbox("Apply stop-loss on losses")
