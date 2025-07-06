@@ -130,7 +130,7 @@ if upload:
 
     st.subheader("Win/Loss Distribution")
     fig1, ax1 = plt.subplots()
-    df['outcome'] = df[pnl_col].apply(lambda x: 'Win' if x > 0 else 'Loss' if x < 0 else 'Break-even')
+    df['outcome'] = df[pnl_col].apply(lambda x: 'win' if x > 0 else 'loss' if x < 0 else 'break-even')
     sns.countplot(data=df, x='outcome', palette='Set2', ax=ax1)
     
     st.pyplot(fig1)
@@ -138,17 +138,17 @@ if upload:
 
     # Win/Loss Distribution by Day Type
     daily_wl = df.groupby('DATE')[pnl_col].sum().reset_index()
-    daily_wl['Day Outcome'] = daily_wl[pnl_col].apply(lambda x: 'Winning Day' if x > 0 else 'Losing Day' if x < 0 else 'Flat Day')
-    daily_wl['Weekday'] = pd.to_datetime(daily_wl['DATE']).dt.strftime('%A')
+    daily_wl['outcome'] = daily_wl[pnl_col].apply(lambda x: 'winning' if x > 0 else 'losing' if x < 0 else 'flat')
+    daily_wl['weekday'] = pd.to_datetime(daily_wl['DATE']).dt.strftime('%A')
     weekday_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     toggle_heatmap_metric = st.radio("Heatmap Metric", options=["Average P&L", "Day Count"], horizontal=True)
 
     if toggle_heatmap_metric == "Average P&L":
-        breakdown = daily_wl.groupby(['Day Outcome', 'Weekday'])[pnl_col].mean().unstack(fill_value=0)
+        breakdown = daily_wl.groupby(['outcome', 'weekday'])[pnl_col].mean().unstack(fill_value=0)
         breakdown = breakdown.reindex(columns=weekday_order, fill_value=0)
         fmt_str = lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
     else:
-        breakdown = daily_wl.groupby(['Day Outcome', 'Weekday']).size().unstack(fill_value=0)
+        breakdown = daily_wl.groupby(['outcome', 'weekday']).size().unstack(fill_value=0)
         breakdown = breakdown.reindex(columns=weekday_order, fill_value=0)
         fmt_str = lambda x: f"{int(x)}"
 
