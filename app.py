@@ -161,6 +161,7 @@ if upload:
     daily.index = daily.index.to_series().apply(format_ordinal_date)
     daily.plot(kind='bar', ax=ax2)
     ax2.set_xlabel('date')
+    ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}"))
     st.pyplot(fig2)
     formatted_daily = (
         daily.reset_index()
@@ -196,7 +197,7 @@ if upload:
         ax_compare.plot(subset['DATETIME_HOUR'], subset['Cumulative P&L'], marker='o', label=label)
     ax_compare.axhline(0, color='gray', linestyle='--')
     ax_compare.legend(title='Date', bbox_to_anchor=(1.05, 1), loc='upper left')
-    ax_compare.set_ylabel('Cumulative P&L')
+    ax_compare.set_ylabel('')
     ax_compare.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}"))
     ax_compare.set_xticklabels([])
     st.pyplot(fig_compare)
