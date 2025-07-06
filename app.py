@@ -68,7 +68,6 @@ if upload:
     df = df[df['Direction'].isin(direction_filter)]
 
     st.sidebar.markdown("---")
-    st.sidebar.subheader("Outlier Filtering")
     use_outlier_filtering = st.sidebar.checkbox("Enable outlier filtering")
     bottom_pct = st.sidebar.slider("Remove bottom X% trades", 0, 50, 0, step=1)
     top_pct = st.sidebar.slider("Remove top X% trades", 0, 50, 0, step=1)
