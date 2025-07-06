@@ -148,13 +148,15 @@ if upload:
         .rename(columns={pnl_col: 'Net P&L (£)'})
         .assign(DATE=pd.to_datetime(daily.index))
         .sort_values('DATE')
-        .assign(DATE=lambda x: x['Date'].apply(format_ordinal_date))
+        .assign(DATE=lambda x: x['DATE'].apply(format_ordinal_date))
         .reset_index(drop=True)
     )
 
     st.dataframe(
+        column_config={"DATE": "Date"},
         formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''),
-        use_container_width=True
+        use_container_width=True,
+        hide_index=True
     )
     figs.append(fig2)
 
@@ -248,6 +250,7 @@ if upload:
     ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}"))
     st.pyplot(fig5)
     figs.append(fig5)
+    
     st.subheader("Buy vs Sell Performance")
     direction_summary = df.groupby('Direction')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Trades', 'mean': 'Avg P&L', 'sum': 'Total P&L'})
     st.dataframe(direction_summary.style.format({
