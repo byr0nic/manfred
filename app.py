@@ -137,6 +137,7 @@ if upload:
     figs.append(fig1)
 
     # Win/Loss Distribution by Day Type
+    st.subheader("Winning/Losing Days by Weekday (Heatmap)")
     daily_wl = df.groupby('DATE')[pnl_col].sum().reset_index()
     daily_wl['outcome'] = daily_wl[pnl_col].apply(lambda x: 'winning' if x > 0 else 'losing' if x < 0 else 'flat')
     daily_wl['weekday'] = pd.to_datetime(daily_wl['DATE']).dt.strftime('%A')
@@ -156,7 +157,6 @@ if upload:
     breakdown['Total'] = breakdown.sum(axis=1)
     st.dataframe(breakdown.style.format(fmt_str))
 
-    st.subheader("Winning/Losing Days by Weekday (Heatmap)")
     fig_hm, ax_hm = plt.subplots()
     heatmap_data = breakdown.drop(columns=['Total'])
     heatmap_data = heatmap_data.reindex(columns=weekday_order, fill_value=0)
@@ -168,7 +168,7 @@ if upload:
     linewidths=0.5,
     linecolor='gray',
     ax=ax_hm,
-    cbar_kws={'label': 'Metric'},
+    cbar_kws={'label': 'metric'},
     annot_kws={"fontsize": 9},
     xticklabels=True,
     yticklabels=True,
