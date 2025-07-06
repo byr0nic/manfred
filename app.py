@@ -81,6 +81,7 @@ if upload:
     use_takeprofit = st.sidebar.checkbox("Apply take-profit on gains")
     takeprofit_level = st.sidebar.number_input("Take-profit threshold (£)", min_value=0, max_value=10000, value=300, step=10)
 
+    use_trailing = False
     # use_trailing = st.sidebar.checkbox("Apply trailing stop-loss on gains")
     # trailing_gap = st.sidebar.number_input("Trailing stop gap (£)", min_value=0, max_value=10000, value=150, step=10)
     
@@ -90,8 +91,8 @@ if upload:
             pnl = -stop_level
         if use_takeprofit and pnl > takeprofit_level:
             pnl = takeprofit_level
-        # if use_trailing and pnl > trailing_gap:
-        #     pnl = pnl - trailing_gap
+        if use_trailing and pnl > trailing_gap:
+            pnl = pnl - trailing_gap
         return pnl
 
     df['Net P&L (Adj)'] = df.apply(apply_simulation, axis=1)
