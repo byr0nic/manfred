@@ -234,6 +234,7 @@ if upload:
     ax_dur_dist.set_xlabel("duration")
     st.pyplot(fig_dur_dist)
 
+    st.subheader("Trade Duration Performance")
     fig_dur_pnl, ax_dur_pnl = plt.subplots()
     dur_pnl = df.groupby('Duration Bucket')[pnl_col].mean().reindex(labels)
     bars = ax_dur_pnl.bar(dur_pnl.index, dur_pnl.values, color=sns.color_palette("RdYlGn", len(dur_pnl)))
