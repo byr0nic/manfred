@@ -110,6 +110,13 @@ if upload:
     # use_trailing = st.sidebar.checkbox("Apply trailing stop-loss on gains")
     # trailing_gap = st.sidebar.number_input("Trailing stop gap (£)", min_value=0, max_value=10000, value=150, step=10)
 
+    # st.sidebar.subheader("Win/Loss Trimming")
+    # trim_wins_pct = st.sidebar.slider("Trim top X% of winning trades", 0, 50, 0, step=1)
+    # trim_losses_pct = st.sidebar.slider("Trim bottom X% of losing trades", 0, 50, 0, step=1)
+
+    use_partial_reintroduction = st.sidebar.checkbox("Include excluded trades")
+    reintroduction_pct = st.sidebar.slider("Weight of excluded trades (%)", 0, 100, 50, step=5) if use_partial_reintroduction else 0
+
     def apply_simulation(row):
         pnl = row['Net P&L']
         if use_stop and pnl < -stop_level:
@@ -119,6 +126,24 @@ if upload:
         if use_trailing and pnl > trailing_gap:
             pnl = pnl - trailing_gap
         return pnl
+
+    # Apply win/loss trimming
+    if trim_wins_pct > 0:
+        win_df = df[df[pnl_col] > 0].sort_values(pnl_col, ascending=False)
+        n_trim_wins = int(len(win_df) * trim_wins_pct / 100)
+        df = df.drop(win_df.head(n_trim_wins).index)
+    if trim_losses_pct > 0:
+        loss_df = df[df[pnl_col] < 0].sort_values(pnl_col)
+        n_trim_losses = int(len(loss_df) * trim_losses_pct / 100)
+        df = df.drop(loss_df.head(n_trim_losses).index)
+
+    # Apply reintroduction of excluded trades at reduced weight
+    if use_partial_reintroduction:
+        included_indices = df.index
+        reintroduced = df_original[~df_original.index.isin(included_indices)].copy()
+        reintroduced[pnl_col] *= reintroduction_pct / 100
+        df = pd.concat([df, reintroduced], ignore_index=True)
+
 
     df['Net P&L (Adj)'] = df.apply(apply_simulation, axis=1)
     
