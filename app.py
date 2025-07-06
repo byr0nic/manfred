@@ -131,7 +131,7 @@ if upload:
     st.subheader("Win/Loss Distribution")
     fig1, ax1 = plt.subplots()
     df['outcome'] = df[pnl_col].apply(lambda x: 'win' if x > 0 else 'loss' if x < 0 else 'break-even')
-    sns.countplot(data=df, x='outcome', palette='Set2', ax=ax1)
+    sns.countplot(data=df, palette='Set2', ax=ax1)
     
     st.pyplot(fig1)
     figs.append(fig1)
@@ -206,7 +206,7 @@ if upload:
         .rename(columns={pnl_col: 'Net P&L (£)'})
         .assign(DATE=pd.to_datetime(daily.index))
         .sort_values('DATE')
-        .assign(DATE=lambda x: x['DATE'].apply(format_ordinal_date))
+        .assign(DATE=lambda x: x['date'].apply(format_ordinal_date))
         .reset_index(drop=True)
     )
 
@@ -218,7 +218,7 @@ if upload:
 
     st.subheader("Trades by Hour")
     fig3, ax3 = plt.subplots()
-    sns.countplot(data=df, x='hour', palette='coolwarm', ax=ax3)
+    sns.countplot(data=df, x='Hour', palette='coolwarm', ax=ax3)
     st.pyplot(fig3)
     figs.append(fig3)
 
