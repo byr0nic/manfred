@@ -142,7 +142,6 @@ if upload:
     daily.plot(kind='bar', ax=ax2)
     ax2.set_xlabel('date')
     st.pyplot(fig2)
-
     formatted_daily = (
         daily.reset_index()
         .rename(columns={pnl_col: 'Net P&L (£)'})
@@ -151,23 +150,22 @@ if upload:
         .assign(DATE=lambda x: x['DATE'].apply(format_ordinal_date))
         .reset_index(drop=True)
     )
-
     st.dataframe(
+        formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}).applymap(
+            lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''
+        ),
         column_config={"DATE": "Date"},
-        formatted_daily.style.format({'Net P&L (£)': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"}).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''),
         use_container_width=True,
         hide_index=True
     )
     figs.append(fig2)
 
-    # Win/Loss Distribution by Day Type
     st.subheader("Winning/Losing Days by Weekday")
     daily_wl = df.groupby('DATE')[pnl_col].sum().reset_index()
     daily_wl['outcome'] = daily_wl[pnl_col].apply(lambda x: 'winning' if x > 0 else 'losing' if x < 0 else 'flat')
     daily_wl['weekday'] = pd.to_datetime(daily_wl['DATE']).dt.strftime('%A')
     weekday_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     toggle_heatmap_metric = st.radio("Metric", options=["Average P&L", "Day Count"], horizontal=True)
-
     if toggle_heatmap_metric == "Average P&L":
         breakdown = daily_wl.groupby(['outcome', 'weekday'])[pnl_col].mean().unstack(fill_value=0)
         breakdown = breakdown.reindex(columns=weekday_order, fill_value=0)
@@ -176,29 +174,25 @@ if upload:
         breakdown = daily_wl.groupby(['outcome', 'weekday']).size().unstack(fill_value=0)
         breakdown = breakdown.reindex(columns=weekday_order, fill_value=0)
         fmt_str = lambda x: f"{int(x)}"
-
-
     breakdown['Total'] = breakdown.sum(axis=1)
     st.dataframe(breakdown.style.format(fmt_str))
-
     fig_hm, ax_hm = plt.subplots()
     heatmap_data = breakdown.drop(columns=['Total'])
     heatmap_data = heatmap_data.reindex(columns=weekday_order, fill_value=0)
     sns.heatmap(
-    heatmap_data,
-    annot=True,
-    fmt="",
-    cmap="RdYlGn",
-    linewidths=0.5,
-    linecolor='gray',
-    ax=ax_hm,
-    cbar_kws={'label': 'metric'},
-    annot_kws={"fontsize": 9},
-    xticklabels=True,
-    yticklabels=True,
-    cbar=True
-)
-
+        heatmap_data,
+        annot=True,
+        fmt="",
+        cmap="RdYlGn",
+        linewidths=0.5,
+        linecolor='gray',
+        ax=ax_hm,
+        cbar_kws={'label': 'metric'},
+        annot_kws={"fontsize": 9},
+        xticklabels=True,
+        yticklabels=True,
+        cbar=True
+    )
     # Apply custom formatting for annotations
     for text in ax_hm.texts:
         try:
@@ -266,7 +260,6 @@ if upload:
     ax6.set_xlabel("type")
     st.pyplot(fig6)
     figs.append(fig6)
-
     method_perf = df[df[pnl_col] < 0].groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Loss Trades', 'mean': 'Avg Loss', 'sum': 'Total Loss'})
     st.dataframe(method_perf.style.format({
         'Avg Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
@@ -274,35 +267,28 @@ if upload:
     }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
 
     st.subheader("Trade Duration Summary")
-
     # Recalculate display durations
     duration_unit = st.radio("Display Duration In:", options=["Seconds", "Minutes"], horizontal=True)
     durations = df['Trade Duration (s)'] if duration_unit == "Seconds" else df['Trade Duration (s)'].div(60)
-
-
     st.write("Min Duration:", f"{durations.min():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
     st.write("Max Duration:", f"{durations.max():,.0f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
     st.write("Average Duration:", f"{durations.mean():,.1f} {'secs' if duration_unit == 'Seconds' else 'mins'}")
-
     # Calculate £ per unit time
     total_duration = df['Trade Duration (s)'].sum()
     gbp_per_second = df[pnl_col].sum() / total_duration if total_duration else 0
     gbp_per_minute = gbp_per_second * 60
-
     if duration_unit == "Seconds":
         st.write("£ per Second:", f"\u00a3{gbp_per_second:.4f}/s")
     else:
         st.write("£ per Minute:", f"\u00a3{gbp_per_minute:.2f}/min")
-
     fig_dur, ax_dur = plt.subplots()
     sns.histplot(durations, bins=30, kde=True, ax=ax_dur)
     ax_dur.set_xlabel(f"duration ({'seconds' if duration_unit == 'Seconds' else 'minutes'})")
     ax_dur.set_ylabel("trades")
     st.pyplot(fig_dur)
-
     # Duration Buckets
-    bins = [0, 15, 60, 120, 300, 900, float('inf')]
-    labels = ["<15s", "15-60s", "1-2m", "2-5m", "5-15m", ">15m"]
+    bins = [0, 15, 60, 120, 300, 900, 1800, float('inf')]
+    labels = ["<15s", "15-60s", "1-2m", "2-5m", "5-15m", "15-30m", ">30m"]
     df['Duration Bucket'] = pd.cut(df['Trade Duration (s)'], bins=bins, labels=labels, right=False)
 
     st.subheader("Trade Distribution by Duration Bucket")
@@ -321,7 +307,6 @@ if upload:
     ax_dur_pnl.set_xlabel("duration")
     ax_dur_pnl.set_xticks(range(len(labels)))
     ax_dur_pnl.set_xticklabels(labels)
-
     for bar, val in zip(bars, dur_pnl.values):
         if pd.isna(val):
             continue
