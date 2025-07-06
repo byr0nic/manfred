@@ -90,8 +90,8 @@ if upload:
             pnl = -stop_level
         if use_takeprofit and pnl > takeprofit_level:
             pnl = takeprofit_level
-        if use_trailing and pnl > trailing_gap:
-            pnl = pnl - trailing_gap
+        # if use_trailing and pnl > trailing_gap:
+        #     pnl = pnl - trailing_gap
         return pnl
 
     df['Net P&L (Adj)'] = df.apply(apply_simulation, axis=1)
