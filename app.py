@@ -111,8 +111,8 @@ if upload:
     # trailing_gap = st.sidebar.number_input("Trailing stop gap (£)", min_value=0, max_value=10000, value=150, step=10)
 
     # st.sidebar.subheader("Win/Loss Trimming")
-    # trim_wins_pct = st.sidebar.slider("Trim top X% of winning trades", 0, 50, 0, step=1)
-    # trim_losses_pct = st.sidebar.slider("Trim bottom X% of losing trades", 0, 50, 0, step=1)
+    trim_wins_pct = st.sidebar.slider("Trim % of winning trades", 0, 50, 0, step=1)
+    trim_losses_pct = st.sidebar.slider("Trim % of losing trades", 0, 50, 0, step=1)
 
     use_partial_reintroduction = st.sidebar.checkbox("Include excluded trades")
     reintroduction_pct = st.sidebar.slider("Weight of excluded trades (%)", 0, 100, 50, step=5) if use_partial_reintroduction else 0
