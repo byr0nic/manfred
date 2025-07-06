@@ -67,7 +67,6 @@ if upload:
     df = df[df['Trade Outcome'].isin(result_filter)]
     df = df[df['Direction'].isin(direction_filter)]
 
-    st.sidebar.markdown("---")
     use_outlier_filtering = st.sidebar.checkbox("Enable outlier filtering")
     bottom_pct = st.sidebar.slider("Remove bottom X% trades", 0, 50, 0, step=1)
     top_pct = st.sidebar.slider("Remove top X% trades", 0, 50, 0, step=1)
@@ -91,6 +90,7 @@ if upload:
             df = df[df['Hours Since First'] < max_hours_per_day]
 
     # Simulations
+    st.sidebar.markdown("---")
     st.sidebar.subheader("Simulations")
     use_stop = st.sidebar.checkbox("Apply stop-loss on losses")
     stop_level = st.sidebar.number_input("Stop-loss threshold (£)", min_value=0, max_value=10000, value=200, step=10)
