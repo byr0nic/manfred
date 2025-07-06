@@ -137,12 +137,12 @@ if upload:
     figs.append(fig1)
 
     # Win/Loss Distribution by Day Type
-    st.subheader("Winning/Losing Days by Weekday (Heatmap)")
+    st.subheader("Winning/Losing Days by Weekday")
     daily_wl = df.groupby('DATE')[pnl_col].sum().reset_index()
     daily_wl['outcome'] = daily_wl[pnl_col].apply(lambda x: 'winning' if x > 0 else 'losing' if x < 0 else 'flat')
     daily_wl['weekday'] = pd.to_datetime(daily_wl['DATE']).dt.strftime('%A')
     weekday_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    toggle_heatmap_metric = st.radio("Heatmap Metric", options=["Average P&L", "Day Count"], horizontal=True)
+    toggle_heatmap_metric = st.radio("Metric", options=["Average P&L", "Day Count"], horizontal=True)
 
     if toggle_heatmap_metric == "Average P&L":
         breakdown = daily_wl.groupby(['outcome', 'weekday'])[pnl_col].mean().unstack(fill_value=0)
