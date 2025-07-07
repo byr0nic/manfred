@@ -366,31 +366,6 @@ if upload:
         'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
     }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
 
-    st.subheader("Consecutive Directional Trades Performance")
-    df_sorted = df.sort_values('DATE/TIME').copy()
-    df_sorted['Direction Change'] = df_sorted['Direction'] != df_sorted['Direction'].shift()
-    df_sorted['Sequence ID'] = df_sorted['Direction Change'].cumsum()
-    sequence_summary = df_sorted.groupby(['Direction', 'Sequence ID']).agg(
-        count=('Net P&L', 'count'),
-        total_pnl=('Net P&L', 'sum'),
-        win_count=('Net P&L', lambda x: (x > 0).sum()),
-        loss_count=('Net P&L', lambda x: (x < 0).sum())
-    ).reset_index()
-    st.dataframe(sequence_summary.style.format({
-        'total_pnl': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
-    }))
-    fig_seq, ax_seq = plt.subplots()
-    sns.histplot(data=sequence_summary, x='count', hue='Direction', multiple='dodge', bins=20, ax=ax_seq)
-    ax_seq.set_xlabel("trades")
-    ax_seq.set_ylabel("count")
-    st.pyplot(fig_seq)
-    
-    fig_dur, ax_dur = plt.subplots()
-    sns.histplot(durations, bins=30, kde=True, ax=ax_dur)
-    ax_dur.set_xlabel(f"trade duration ({'seconds' if duration_unit == 'Seconds' else 'minutes'})")
-    ax_dur.set_ylabel("number of trades")
-    st.pyplot(fig_dur)
-
     st.markdown("---")
     if st.button("📄 Export All Charts to PDF"):
         buffer = BytesIO()
