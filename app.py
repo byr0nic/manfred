@@ -118,7 +118,7 @@ if upload:
     reintroduction_pct = st.sidebar.slider("Weight of excluded trades (%)", 0, 100, 50, step=5)
 
     def apply_simulation(row):
-        pnl = row['Net P&L']=
+        pnl = row['Net P&L']
         if use_stop and pnl < -stop_level:
             pnl = -stop_level
         if use_takeprofit and pnl > takeprofit_level:
