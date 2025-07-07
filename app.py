@@ -223,6 +223,7 @@ if upload:
             df_original.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col]
             .sum().reset_index()
         )
+        df_original_grouped['Cumulative P&L'] = df_original_grouped.groupby('DATE')[pnl_col].cumsum()
     else:
         df_original_grouped = pd.DataFrame()
     if not df_original_grouped.empty and 'DATE' in df_original_grouped.columns:
