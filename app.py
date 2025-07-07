@@ -127,6 +127,17 @@ if upload:
             pnl = pnl - trailing_gap
         return pnl
 
+    df['Net P&L (Adj)'] = df.apply(apply_simulation, axis=1)
+    
+    # Apply outlier trimming
+    if use_outlier_filtering and (bottom_pct > 0 or top_pct > 0):
+        pnl_sorted = df.sort_values('Net P&L (Adj)')
+        n = len(pnl_sorted)
+        bottom_n = int(n * bottom_pct / 100)
+        top_n = int(n * top_pct / 100)
+        df = pnl_sorted.iloc[bottom_n:n - top_n if top_n > 0 else n]
+    pnl_col = 'Net P&L (Adj)' if (use_stop or use_takeprofit or use_trailing) else 'Net P&L'
+
     # Apply win/loss trimming
     if trim_wins_pct > 0:
         win_df = df[df[pnl_col] > 0].sort_values(pnl_col, ascending=False)
@@ -143,18 +154,6 @@ if upload:
         reintroduced = df_original[~df_original.index.isin(included_indices)].copy()
         reintroduced[pnl_col] *= reintroduction_pct / 100
         df = pd.concat([df, reintroduced], ignore_index=True)
-
-
-    df['Net P&L (Adj)'] = df.apply(apply_simulation, axis=1)
-    
-    # Apply outlier trimming
-    if use_outlier_filtering and (bottom_pct > 0 or top_pct > 0):
-        pnl_sorted = df.sort_values('Net P&L (Adj)')
-        n = len(pnl_sorted)
-        bottom_n = int(n * bottom_pct / 100)
-        top_n = int(n * top_pct / 100)
-        df = pnl_sorted.iloc[bottom_n:n - top_n if top_n > 0 else n]
-    pnl_col = 'Net P&L (Adj)' if (use_stop or use_takeprofit or use_trailing) else 'Net P&L'
 
     # Summary stats
     total = len(df)
