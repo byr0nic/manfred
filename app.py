@@ -37,15 +37,15 @@ def load_data(upload):
     return df
 
 # Sidebar upload
-st.sidebar.title("Upload Trade History CSV")
+# st.sidebar.title("Upload Trade History CSV")
 upload = st.sidebar.file_uploader("Upload CMC History CSV", type=["csv"])
 
 if upload:
     df = load_data(upload)
-    st.title("📈 Trading Performance Dashboard")
+    st.title("📈 M.A.N.F.R.E.D.")
 
     # Filters
-    st.sidebar.subheader("Filters")
+    st.sidebar.title("Filters")
     min_date, max_date = df['DATE/TIME'].min().date(), df['DATE/TIME'].max().date()
     date_range = st.sidebar.date_input("Select Date Range", [min_date, max_date])
     stake_range = st.sidebar.slider("Stake Range", float(df['STAKE'].min()), float(df['STAKE'].max()), (float(df['STAKE'].min()), float(df['STAKE'].max())))
@@ -118,7 +118,7 @@ if upload:
     reintroduction_pct = st.sidebar.slider("Weight of excluded trades (%)", 0, 100, 50, step=5)
 
     def apply_simulation(row):
-        pnl = row['Net P&L']
+        pnl = row['Net P&L']=
         if use_stop and pnl < -stop_level:
             pnl = -stop_level
         if use_takeprofit and pnl > takeprofit_level:
