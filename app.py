@@ -218,9 +218,13 @@ if upload:
     figs.append(fig2)
     fig_compare, ax_compare = plt.subplots(figsize=(10, 5))
 
-    if pnl_col in df_original.columns and not df_original.empty:
-        df_original_grouped = df_original.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col].sum().reset_index()
-        df_original_grouped['Cumulative P&L'] = df_original_grouped.groupby('DATE')[pnl_col].cumsum()
+    if not df_original.empty and {'DATE', 'DATETIME_HOUR', pnl_col}.issubset(df_original.columns):
+        df_original_grouped = (
+            df_original.groupby(['DATE', 'DATETIME_HOUR'])[pnl_col]
+            .sum().reset_index()
+        )
+    else:
+        df_original_grouped = pd.DataFrame()
     if not df_original_grouped.empty and 'DATE' in df_original_grouped.columns:
         for date in df_original_grouped['DATE'].unique():
             subset = df_original_grouped[df_original_grouped['DATE'] == date]
