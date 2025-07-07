@@ -37,12 +37,11 @@ def load_data(upload):
     return df
 
 # Sidebar upload
-# st.sidebar.title("Upload Trade History CSV")
+st.sidebar.title("📈 M.A.N.F.R.E.D.")
 upload = st.sidebar.file_uploader("Upload CMC History CSV", type=["csv"])
 
 if upload:
     df = load_data(upload)
-    st.title("📈 M.A.N.F.R.E.D.")
 
     # Filters
     st.sidebar.title("Filters")
