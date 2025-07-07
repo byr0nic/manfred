@@ -115,7 +115,7 @@ if upload:
     trim_losses_pct = st.sidebar.slider("Trim % of losing trades", 0, 50, 0, step=1)
 
     use_partial_reintroduction = st.sidebar.checkbox("Include excluded trades")
-    reintroduction_pct = st.sidebar.slider("Weight of excluded trades (%)", 0, 100, 50, step=5) if use_partial_reintroduction else 0
+    reintroduction_pct = st.sidebar.slider("Weight of excluded trades (%)", 0, 100, 50, step=5)
 
     def apply_simulation(row):
         pnl = row['Net P&L']
