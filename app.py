@@ -152,8 +152,14 @@ if upload:
     if use_partial_reintroduction:
         included_indices = df.index
         reintroduced = df_original[~df_original.index.isin(included_indices)].copy()
-        reintroduced[pnl_col] *= reintroduction_pct / 100
-        df = pd.concat([df, reintroduced], ignore_index=True)
+        # Ensure Net P&L (Adj) exists for reintroduced rows if simulations are used
+        if pnl_col == 'Net P&L (Adj)':
+            reintroduced['Net P&L (Adj)'] = reintroduced.apply(apply_simulation, axis=1)
+        if pnl_col in reintroduced.columns:
+            reintroduced[pnl_col] *= reintroduction_pct / 100
+            df = pd.concat([df, reintroduced], ignore_index=True)
+        else:
+            st.warning(f"Column '{pnl_col}' missing from reintroduced trades; skipping reintroduction.")
 
     # Summary stats
     total = len(df)
