@@ -289,9 +289,9 @@ if upload:
     duration_hour_counts = df.pivot_table(
         index='Duration Bucket',
         columns='HOUR',
-        values='',
+        values=pnl_col,
         aggfunc='count',
-        fill_value=0
+        fill_value=''
     )
     duration_hour_pct = duration_hour_counts.div(duration_hour_counts.sum(axis=0), axis=1) * 100
     fig_ht, ax_ht = plt.subplots(figsize=(12, 5))
