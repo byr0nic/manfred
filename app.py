@@ -421,8 +421,6 @@ if upload:
         'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
     }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
 
-True)
-
     # Stop-Loss Recovery Success Rate
     st.subheader("Stop-Loss Recovery Success Rate")
     max_delay = st.slider("Time Window for Recovery Trade (Minutes)", 0, 60, 5, step=1)
