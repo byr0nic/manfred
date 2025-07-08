@@ -421,6 +421,34 @@ if upload:
         'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
     }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
 
+True)
+
+    # Stop-Loss Recovery Success Rate
+    st.subheader("Stop-Loss Recovery Success Rate")
+    max_delay = st.slider("Time Window for Recovery Trade (Minutes)", 0, 60, 5, step=1)
+    stop_indices = df[df['TYPE'] == 'Stop Loss'].index
+    recoveries = 0
+    total_qualifying = 0
+    for idx in stop_indices:
+        if idx + 1 >= len(df):
+            continue
+        current = df.loc[idx]
+        next_trade = df.loc[idx + 1]
+        if pd.isna(next_trade['Trade Duration (s)']) or pd.isna(current['DATE/TIME']) or pd.isna(next_trade['DATE/TIME']):
+            continue
+        delay = (next_trade['DATE/TIME'] - current['DATE/TIME']).total_seconds() / 60
+        if delay <= max_delay:
+            if current['Direction'] != next_trade['Direction'] and next_trade['Net P&L'] > 0:
+                recoveries += 1
+            total_qualifying += 1
+
+    success_rate = (recoveries / total_qualifying * 100) if total_qualifying > 0 else 0
+    fig_recovery, ax_recovery = plt.subplots()
+    ax_recovery.bar(['Successful Recoveries', 'Other'], [recoveries, total_qualifying - recoveries], color=["green", "red"])
+    ax_recovery.set_title(f"Stop-Loss Recovery Success Rate: {success_rate:.1f}%")
+    ax_recovery.set_ylabel("Number of Trades")
+    st.pyplot(fig_recovery)
+
     st.markdown("---")
     if st.button("📄 Export All Charts to PDF"):
         buffer = BytesIO()
