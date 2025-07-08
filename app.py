@@ -278,9 +278,9 @@ if upload:
 
     st.subheader("Trade Distribution by Duration")
     fig_dur_dist, ax_dur_dist = plt.subplots()
-    dur_counts = df['Duration Bucket'].value_counts().sort_index()
+    dur_counts = df['Duration Bucket'].value_counts(normalize=True).sort_index() * 100
     sns.barplot(x=dur_counts.index, y=dur_counts.values, palette="Blues", ax=ax_dur_dist)
-    ax_dur_dist.set_ylabel("trades")
+    ax_dur_dist.set_ylabel("% of trades")
     ax_dur_dist.set_xlabel("duration")
     st.pyplot(fig_dur_dist)
 
