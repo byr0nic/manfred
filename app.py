@@ -419,7 +419,7 @@ if upload:
     st.dataframe(method_perf.style.format({
         'Avg Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
         'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
-    }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£')
+    }).applymap(lambda v: 'color: red') if isinstance(v, str) and v.startswith('(£')
     
     Stop-Loss Follow-Up Effectiveness Chart
     st.subheader("Effectiveness of Stop-Loss Follow-ups")
