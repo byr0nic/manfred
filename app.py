@@ -416,15 +416,14 @@ if upload:
     st.pyplot(fig6)
     figs.append(fig6)
     method_perf = df[df[pnl_col] < 0].groupby('TYPE')[pnl_col].agg(['count', 'mean', 'sum']).rename(columns={'count': 'Loss Trades', 'mean': 'Avg Loss', 'sum': 'Total Loss'})
-    st.dataframe(method_perf.style.format({
-        'Avg Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
-        'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
-    }).applymap(lambda v: 'color: red') if isinstance(v, str) and v.startswith('(£')
-    
-    Stop-Loss Follow-Up Effectiveness Chart
-    st.subheader("Effectiveness of Stop-Loss Follow-ups")
+    st.dataframe(
+        method_perf.style.format({
+            'Avg Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
+            'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
+        }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else '')
+    )
 
-        # Stop-Loss Follow-Up Effectiveness Chart
+    # Stop-Loss Follow-Up Effectiveness Chart
     st.subheader("Effectiveness of Stop-Loss Follow-ups")
 
     # Slider to filter time window for follow-up trade
