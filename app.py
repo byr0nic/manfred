@@ -287,8 +287,8 @@ if upload:
     # Heatmap: % of Trades per Duration Bucket by Hour of Day
     st.subheader("Trade Duration vs Time of Day (Heatmap %)")
     duration_hour_counts = df.pivot_table(
-        index='HOUR',
-        columns='Duration Bucket',
+        index='Duration Bucket',
+        columns='HOUR',
         values='',
         aggfunc='count',
         fill_value=0
@@ -296,8 +296,8 @@ if upload:
     duration_hour_pct = duration_hour_counts.div(duration_hour_counts.sum(axis=0), axis=1) * 100
     fig_ht, ax_ht = plt.subplots(figsize=(12, 5))
     sns.heatmap(duration_hour_pct, annot=True, fmt=".1f", cmap="YlGnBu", ax=ax_ht, cbar_kws={'label': '% of trades'})
-    ax_ht.set_xlabel("duration")
-    ax_ht.set_ylabel("hour")
+    ax_ht.set_xlabel("hour")
+    ax_ht.set_ylabel("duration bucket")
     st.pyplot(fig_ht)
 
     st.subheader("Trade Duration Performance")
