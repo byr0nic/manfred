@@ -72,24 +72,6 @@ if upload:
     bottom_pct = st.sidebar.slider("Remove bottom X% trades", 0, 50, 0, step=1)
     top_pct = st.sidebar.slider("Remove top X% trades", 0, 50, 0, step=1)
 
-    limit_trades = st.sidebar.checkbox("Enable trade limits")
-    max_trades_per_day = st.sidebar.number_input("Max trades per day", min_value=1, max_value=100, value=10, step=1)
-
-    limit_hours = st.sidebar.checkbox("Enable time limits")
-    max_hours_per_day = st.sidebar.number_input("Max trading hours per day", min_value=1, max_value=24, value=4, step=1)
-
-    if limit_trades or limit_hours:
-        df = df.sort_values(by=['DATE', 'DATE/TIME'])
-        df['Trade #'] = df.groupby('DATE').cumcount() + 1
-        df['Hour of Day'] = df['DATE/TIME'].dt.hour
-        first_hour = df.groupby('DATE')['Hour of Day'].transform('min')
-        df['Hours Since First'] = df['Hour of Day'] - first_hour
-
-        if limit_trades:
-            df = df[df['Trade #'] <= max_trades_per_day]
-        if limit_hours:
-            df = df[df['Hours Since First'] < max_hours_per_day]
-
     # Remove Filters Button (reset filters to defaults)
     if st.sidebar.button("Reset Filters"):
         st.experimental_set_query_params()  # clear all URL query params
@@ -112,6 +94,24 @@ if upload:
     # st.sidebar.subheader("Win/Loss Trimming")
     trim_wins_pct = st.sidebar.slider("Trim % of winning trades", 0, 50, 0, step=1)
     trim_losses_pct = st.sidebar.slider("Trim % of losing trades", 0, 50, 0, step=1)
+
+    limit_trades = st.sidebar.checkbox("Enable trade limits")
+    max_trades_per_day = st.sidebar.number_input("Max trades per day", min_value=1, max_value=100, value=10, step=1)
+
+    limit_hours = st.sidebar.checkbox("Enable time limits")
+    max_hours_per_day = st.sidebar.number_input("Max trading hours per day", min_value=1, max_value=24, value=4, step=1)
+
+    if limit_trades or limit_hours:
+        df = df.sort_values(by=['DATE', 'DATE/TIME'])
+        df['Trade #'] = df.groupby('DATE').cumcount() + 1
+        df['Hour of Day'] = df['DATE/TIME'].dt.hour
+        first_hour = df.groupby('DATE')['Hour of Day'].transform('min')
+        df['Hours Since First'] = df['Hour of Day'] - first_hour
+
+        if limit_trades:
+            df = df[df['Trade #'] <= max_trades_per_day]
+        if limit_hours:
+            df = df[df['Hours Since First'] < max_hours_per_day]
 
     st.sidebar.markdown("---")
     use_partial_reintroduction = st.sidebar.checkbox("Include excluded trades")
