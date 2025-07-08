@@ -178,11 +178,19 @@ if upload:
     net_pnl_color = "#FF4B4B" if net_pnl_value < 0 else "#28A745"
     col3.metric("Net P&L", net_pnl_str)
 
-    st.markdown("---")
-
     # Trade Data Table (Collapsible)
     with st.expander("🔍 Show All Filtered Trades"):
-        st.dataframe(df.sort_values(by='DATE/TIME', ascending=False), use_container_width=True)
+        # Drop columns with only NaN, empty strings or '-' values
+        def is_meaningful(col):
+            return not (
+                col.isna().all()
+                or (col.astype(str).str.strip() == "").all()
+                or (col.astype(str).str.strip() == "-").all()
+            )
+        display_df = df.loc[:, df.apply(is_meaningful)]
+        st.dataframe(display_df.sort_values(by='DATE/TIME', ascending=False), use_container_width=True)
+
+    # st.markdown("---")
 
     # Charts
     figs = []
