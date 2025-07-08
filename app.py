@@ -419,33 +419,54 @@ if upload:
     st.dataframe(method_perf.style.format({
         'Avg Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}",
         'Total Loss': lambda x: f"(£{abs(x):,.2f})" if x < 0 else f"£{x:,.2f}"
-    }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else ''))
+    }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£')     # Stop-Loss Follow-Up Effectiveness Chart
+    st.subheader("Effectiveness of Stop-Loss Follow-ups")
 
-    # Stop-Loss Recovery Success Rate
-    st.subheader("Stop-Loss Recovery Success Rate")
-    max_delay = st.slider("Time Window for Recovery Trade (Minutes)", 0, 60, 5, step=1)
-    stop_indices = df[df['TYPE'] == 'Stop Loss'].index
-    recoveries = 0
-    total_qualifying = 0
-    for idx in stop_indices:
-        if idx + 1 >= len(df):
-            continue
-        current = df.loc[idx]
-        next_trade = df.loc[idx + 1]
-        if pd.isna(next_trade['Trade Duration (s)']) or pd.isna(current['DATE/TIME']) or pd.isna(next_trade['DATE/TIME']):
-            continue
-        delay = (next_trade['DATE/TIME'] - current['DATE/TIME']).total_seconds() / 60
-        if delay <= max_delay:
-            if current['Direction'] != next_trade['Direction'] and next_trade['Net P&L'] > 0:
-                recoveries += 1
-            total_qualifying += 1
+    # Slider to filter time window for follow-up trade
+    max_minutes = 60
+    followup_minutes = st.slider("Max minutes after stop-loss to consider a follow-up trade", 1, max_minutes, 10)
 
-    success_rate = (recoveries / total_qualifying * 100) if total_qualifying > 0 else 0
-    fig_recovery, ax_recovery = plt.subplots()
-    ax_recovery.bar(['Successful Recoveries', 'Other'], [recoveries, total_qualifying - recoveries], color=["green", "red"])
-    ax_recovery.set_title(f"Stop-Loss Recovery Success Rate: {success_rate:.1f}%")
-    ax_recovery.set_ylabel("Number of Trades")
-    st.pyplot(fig_recovery)
+    successful_followups = 0
+    total_qualified_followups = 0
+
+    df_sorted = df.sort_values('DATE/TIME').reset_index(drop=True)
+
+    for i in range(len(df_sorted) - 1):
+        row = df_sorted.iloc[i]
+
+        if row['TYPE'] == 'Stop Loss':
+            next_trade = df_sorted.iloc[i + 1]
+
+            # Check time gap
+            time_diff = (next_trade['DATE/TIME'] - row['DATE/TIME']).total_seconds() / 60
+            if time_diff > followup_minutes:
+                continue
+
+            # Check for opposite direction
+            if row['Direction'] == 'Buy' and next_trade['Direction'] == 'Sell':
+                direction_opposite = True
+            elif row['Direction'] == 'Sell' and next_trade['Direction'] == 'Buy':
+                direction_opposite = True
+            else:
+                direction_opposite = False
+
+            if direction_opposite:
+                total_qualified_followups += 1
+                if next_trade[pnl_col] > 0:
+                    successful_followups += 1
+
+    # Calculate and display success rate
+    if total_qualified_followups > 0:
+        success_rate = (successful_followups / total_qualified_followups) * 100
+    else:
+        success_rate = 0
+
+    # Chart to visualize
+    fig_followup, ax_followup = plt.subplots()
+    ax_followup.bar(['Successful', 'Unsuccessful'], [successful_followups, total_qualified_followups - successful_followups], color=["green", "red"])
+    ax_followup.set_title(f"Follow-up Success Rate: {success_rate:.1f}%")
+    ax_followup.set_ylabel("Number of Trades")
+    st.pyplot(fig_followup)
 
     st.markdown("---")
     if st.button("📄 Export All Charts to PDF"):
