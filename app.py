@@ -180,6 +180,10 @@ if upload:
 
     st.markdown("---")
 
+    # Trade Data Table (Collapsible)
+    with st.expander("🔍 Show All Filtered Trades"):
+        st.dataframe(df.sort_values(by='DATE/TIME', ascending=False), use_container_width=True)
+
     # Charts
     figs = []
 
