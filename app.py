@@ -113,6 +113,7 @@ if upload:
     trim_wins_pct = st.sidebar.slider("Trim % of winning trades", 0, 50, 0, step=1)
     trim_losses_pct = st.sidebar.slider("Trim % of losing trades", 0, 50, 0, step=1)
 
+    st.sidebar.markdown("---")
     use_partial_reintroduction = st.sidebar.checkbox("Include excluded trades")
     reintroduction_pct = st.sidebar.slider("Weight of excluded trades (%)", 0, 100, 50, step=5)
 
