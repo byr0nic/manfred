@@ -204,12 +204,25 @@ if upload:
     figs.append(fig1)
 
     st.subheader("Daily Net P&L")
-    daily = df.groupby('DATE')[pnl_col].sum().sort_index()
+    # Daily Net P&L with Overlaid Trade Count
+    daily_pnl = df.groupby('DATE')[pnl_col].sum().sort_index()
+    daily_trades = df.groupby('DATE').size().sort_index()    
     fig2, ax2 = plt.subplots()
-    daily.index = daily.index.to_series().apply(format_ordinal_date)
-    daily.plot(kind='bar', ax=ax2)
-    ax2.set_xlabel('date')
-    ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"(£{abs(x)/1000:.1f}k)" if x < -999 else f"(£{int(round(abs(x)))})" if x < 0 else f"£{x/1000:.1f}k" if x > 999 else f"£{int(round(x))}"))
+    daily_pnl.index = daily_pnl.index.to_series().apply(format_ordinal_date)
+    daily_trades.index = daily_trades.index.to_series().apply(format_ordinal_date)
+    # Bar chart for P&L
+    bars = ax2.bar(daily_pnl.index, daily_pnl.values, color='skyblue', label='Net P&L')
+    ax2.set_ylabel("P&L (£)")
+    ax2.tick_params(axis='x', rotation=45)
+    # Add secondary y-axis for trade count
+    ax2b = ax2.twinx()
+    ax2b.plot(daily_trades.index, daily_trades.values, color='orange', marker='o', linestyle='-', label='trades')
+    ax2b.set_ylabel("Number of Trades")
+    # Legend handling
+    lines_1, labels_1 = ax2.get_legend_handles_labels()
+    lines_2, labels_2 = ax2b.get_legend_handles_labels()
+    ax2.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper left')
+    
     st.pyplot(fig2)
     formatted_daily = (
         daily.reset_index()
