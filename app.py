@@ -227,9 +227,9 @@ if upload:
     st.pyplot(fig2)
 
     formatted_daily = (
-        daily.reset_index()
+        daily_pnl.reset_index()
         .rename(columns={pnl_col: 'Net P&L (£)'})
-        .assign(DATE=pd.to_datetime(daily.index))
+        .assign(DATE=pd.to_datetime(daily_pnl.index))
         .sort_values('DATE')
         .assign(DATE=lambda x: x['DATE'].apply(format_ordinal_date))
         .reset_index(drop=True)
