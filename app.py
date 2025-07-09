@@ -455,6 +455,33 @@ if upload:
         success_rate = (successful_followups / total_qualified_followups) * 100
     else:
         success_rate = 0
+    # Build DataFrame of evaluated Stop Loss trades
+    sl_records = []
+    for idx in stop_loss_effective.index:
+        try:
+            sl_row = df.loc[idx]
+            next_row = df.loc[idx + 1]
+            if (next_row['Direction'] != sl_row['Direction']) and (next_row[pnl_col] > 0):
+                effective = True
+            else:
+                effective = False
+            time_diff = (next_row['DATE/TIME'] - sl_row['DATE/TIME']).total_seconds() / 60
+            if time_diff <= time_limit_slider:
+                sl_records.append({
+                    "Stop Loss Time": sl_row["DATE/TIME"],
+                    "Stop Loss Dir": sl_row["Direction"],
+                    "Stop Loss P&L": sl_row[pnl_col],
+                    "Next Trade Time": next_row["DATE/TIME"],
+                    "Next Dir": next_row["Direction"],
+                    "Next P&L": next_row[pnl_col],
+                    "Effective": "Yes" if effective else "No",
+                    "Minutes Later": f"{time_diff:.1f}"
+                })
+        except:
+            continue
+    sl_df = pd.DataFrame(sl_records)    
+    with st.expander("📋 View Stop Loss Follow-up Trades"):
+        st.dataframe(sl_df, use_container_width=True)
     # Chart to visualize
     fig_followup, ax_followup = plt.subplots()
     ax_followup.bar(['Successful', 'Unsuccessful'], [successful_followups, total_qualified_followups - successful_followups], color=["green", "red"])
