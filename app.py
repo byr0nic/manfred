@@ -519,7 +519,7 @@ if upload:
     ax_followup.bar(['Successful', 'Unsuccessful'], [successful_followups, total_qualified_followups - successful_followups], color=["green", "red"])
     ax_followup.set_title(f"Follow-up Success Rate: {success_rate:.1f}%")
     ax_followup.set_ylabel("Number of Trades")
-    st.pyplot(fig_followup)Slider to filter time window for follow-up trade
+    st.pyplot(fig_followup)
     max_minutes = 60
     followup_minutes = st.slider("Max minutes after stop-loss to consider a follow-up trade", 1, max_minutes, 10)
 
