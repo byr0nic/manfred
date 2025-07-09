@@ -423,29 +423,21 @@ if upload:
         }).applymap(lambda v: 'color: red' if isinstance(v, str) and v.startswith('(£') else '')
     )
 
-    # Stop-Loss Follow-Up Effectiveness Chart
     st.subheader("Effectiveness of Stop-Loss Follow-ups")
-
     # Slider to filter time window for follow-up trade
     max_minutes = 60
     followup_minutes = st.slider("Max minutes after stop-loss to consider a follow-up trade", 1, max_minutes, 10)
-
     successful_followups = 0
     total_qualified_followups = 0
-
     df_sorted = df.sort_values('DATE/TIME').reset_index(drop=True)
-
     for i in range(len(df_sorted) - 1):
         row = df_sorted.iloc[i]
-
         if row['TYPE'] == 'Stop Loss':
             next_trade = df_sorted.iloc[i + 1]
-
             # Check time gap
             time_diff = (next_trade['DATE/TIME'] - row['DATE/TIME']).total_seconds() / 60
             if time_diff > followup_minutes:
                 continue
-
             # Check for opposite direction
             if row['Direction'] == 'Buy' and next_trade['Direction'] == 'Sell':
                 direction_opposite = True
@@ -458,106 +450,11 @@ if upload:
                 total_qualified_followups += 1
                 if next_trade[pnl_col] > 0:
                     successful_followups += 1
-
     # Calculate and display success rate
     if total_qualified_followups > 0:
         success_rate = (successful_followups / total_qualified_followups) * 100
     else:
         success_rate = 0
-
-    # Chart to visualize
-    fig_followup, ax_followup = plt.subplots()
-    ax_followup.bar(['Successful', 'Unsuccessful'], [successful_followups, total_qualified_followups - successful_followups], color=["green", "red"])
-    ax_followup.set_title(f"Follow-up Success Rate: {success_rate:.1f}%")
-    ax_followup.set_ylabel("Number of Trades")
-    st.pyplot(fig_followup)
-    
-    # Stop-Loss Follow-Up Effectiveness Chart
-    st.subheader("Effectiveness of Stop-Loss Follow-ups")
-
-    # Slider to filter time window for follow-up trade
-    max_minutes = 60
-    followup_minutes = st.slider("Max minutes after stop-loss to consider a follow-up trade", 1, max_minutes, 10)
-
-    successful_followups = 0
-    total_qualified_followups = 0
-
-    df_sorted = df.sort_values('DATE/TIME').reset_index(drop=True)
-
-    for i in range(len(df_sorted) - 1):
-        row = df_sorted.iloc[i]
-
-        if row['TYPE'] == 'Stop Loss':
-            next_trade = df_sorted.iloc[i + 1]
-
-            # Check time gap
-            time_diff = (next_trade['DATE/TIME'] - row['DATE/TIME']).total_seconds() / 60
-            if time_diff > followup_minutes:
-                continue
-
-            # Check for opposite direction
-            if row['Direction'] == 'Buy' and next_trade['Direction'] == 'Sell':
-                direction_opposite = True
-            elif row['Direction'] == 'Sell' and next_trade['Direction'] == 'Buy':
-                direction_opposite = True
-            else:
-                direction_opposite = False
-
-            if direction_opposite:
-                total_qualified_followups += 1
-                if next_trade[pnl_col] > 0:
-                    successful_followups += 1
-
-    # Calculate and display success rate
-    if total_qualified_followups > 0:
-        success_rate = (successful_followups / total_qualified_followups) * 100
-    else:
-        success_rate = 0
-
-    # Chart to visualize
-    fig_followup, ax_followup = plt.subplots()
-    ax_followup.bar(['Successful', 'Unsuccessful'], [successful_followups, total_qualified_followups - successful_followups], color=["green", "red"])
-    ax_followup.set_title(f"Follow-up Success Rate: {success_rate:.1f}%")
-    ax_followup.set_ylabel("Number of Trades")
-    st.pyplot(fig_followup)
-    max_minutes = 60
-    followup_minutes = st.slider("Max minutes after stop-loss to consider a follow-up trade", 1, max_minutes, 10)
-
-    successful_followups = 0
-    total_qualified_followups = 0
-
-    df_sorted = df.sort_values('DATE/TIME').reset_index(drop=True)
-
-    for i in range(len(df_sorted) - 1):
-        row = df_sorted.iloc[i]
-
-        if row['TYPE'] == 'Stop Loss':
-            next_trade = df_sorted.iloc[i + 1]
-
-            # Check time gap
-            time_diff = (next_trade['DATE/TIME'] - row['DATE/TIME']).total_seconds() / 60
-            if time_diff > followup_minutes:
-                continue
-
-            # Check for opposite direction
-            if row['Direction'] == 'Buy' and next_trade['Direction'] == 'Sell':
-                direction_opposite = True
-            elif row['Direction'] == 'Sell' and next_trade['Direction'] == 'Buy':
-                direction_opposite = True
-            else:
-                direction_opposite = False
-
-            if direction_opposite:
-                total_qualified_followups += 1
-                if next_trade[pnl_col] > 0:
-                    successful_followups += 1
-
-    # Calculate and display success rate
-    if total_qualified_followups > 0:
-        success_rate = (successful_followups / total_qualified_followups) * 100
-    else:
-        success_rate = 0
-
     # Chart to visualize
     fig_followup, ax_followup = plt.subplots()
     ax_followup.bar(['Successful', 'Unsuccessful'], [successful_followups, total_qualified_followups - successful_followups], color=["green", "red"])
